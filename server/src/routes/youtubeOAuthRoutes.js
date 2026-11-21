@@ -2,19 +2,50 @@ const express = require("express");
 
 const router = express.Router();
 
-const {
-    connectYouTube,
-    youtubeCallback,
-} = require("../controllers/youtubeOAuthController");
+const youtubeOAuthController = require("../controllers/youtubeOAuthController");
 
 /* =========================================================
-   YOUTUBE OAUTH ROUTES
+   CONNECT YOUTUBE
+   GET /api/oauth/youtube
    ========================================================= */
 
-// Memulai proses login Google
-router.get("/youtube", connectYouTube);
+router.get(
+    "/youtube",
+    youtubeOAuthController.connectYouTube
+);
 
-// Callback setelah login Google
-router.get("/youtube/callback", youtubeCallback);
+/* =========================================================
+   OAUTH CALLBACK
+   GET /api/oauth/youtube/callback
+   ========================================================= */
+
+router.get(
+    "/youtube/callback",
+    youtubeOAuthController.youtubeCallback
+);
+
+/* =========================================================
+   CONNECTION STATUS
+   GET /api/oauth/status
+   ========================================================= */
+
+router.get(
+    "/status",
+    youtubeOAuthController.getYouTubeConnectionStatus
+);
+
+/* =========================================================
+   DISCONNECT YOUTUBE
+   DELETE /api/oauth/youtube
+   ========================================================= */
+
+router.delete(
+    "/youtube",
+    youtubeOAuthController.disconnectYouTube
+);
+
+/* =========================================================
+   EXPORT ROUTER
+   ========================================================= */
 
 module.exports = router;

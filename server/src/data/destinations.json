@@ -3,7 +3,7 @@
     "id": 1,
     "name": "YouTube",
     "platform": "youtube",
-    "status": "connected",
+    "status": "pending",
     "streamKey": "",
     "streamUrl": "rtmp://a.rtmp.youtube.com/live2",
     "createdAt": "2026-11-20T00:00:00.000Z"
@@ -25,5 +25,14 @@
     "streamKey": "\tTEST-KEY-456",
     "streamUrl": "rtmp://test.example.com/live",
     "createdAt": "2026-11-20T14:36:13.175Z"
+  },
+  {
+    "id": 4,
+    "name": "youtube",
+    "platform": "youtube",
+    "status": "connected",
+    "streamKey": "sasssa",
+    "streamUrl": "rtmp://a.rtmp.youtube.com/live2",
+    "createdAt": "2026-11-21T04:24:25.508Z"
   }
 ]

@@ -639,6 +639,10 @@ export default function Destinations() {
     useState(false);
 
   const [copied, setCopied] = useState("");
+  /* YOUTUBE OAUTH CONNECTION */
+const [youtubeConnected, setYoutubeConnected] = useState(false);
+const [youtubeLoading, setYoutubeLoading] = useState(false);
+const [youtubeOAuthError, setYoutubeOAuthError] = useState("");
 
   /* =====================================================
      FETCH DESTINATIONS
@@ -675,8 +679,133 @@ export default function Destinations() {
 
   useEffect(() => {
     fetchDestinations();
+    fetchYouTubeOAuthStatus();
   }, []);
+/* =====================================================
+   YOUTUBE OAUTH
+===================================================== */
 
+const fetchYouTubeOAuthStatus = async () => {
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/oauth/status"
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to check YouTube connection."
+      );
+    }
+
+    setYoutubeConnected(Boolean(data.connected));
+    setYoutubeOAuthError("");
+
+    return Boolean(data.connected);
+  } catch (error) {
+    console.error(
+      "YouTube OAuth status check failed:",
+      error
+    );
+
+    setYoutubeOAuthError(
+      error.message || "Unable to check YouTube connection."
+    );
+
+    return false;
+  }
+};
+
+const connectYouTube = () => {
+  setYoutubeLoading(true);
+  setYoutubeOAuthError("");
+
+  const popup = window.open(
+    "http://localhost:5000/api/oauth/youtube",
+    "multistream-youtube-oauth",
+    "width=600,height=750,left=200,top=100"
+  );
+
+  if (!popup) {
+    setYoutubeLoading(false);
+
+    setYoutubeOAuthError(
+      "Popup blocked. Please allow popups for localhost and try again."
+    );
+
+    return;
+  }
+
+  const checkConnection = async () => {
+    const connected = await fetchYouTubeOAuthStatus();
+
+    if (connected) {
+      setYoutubeLoading(false);
+
+      try {
+        popup.close();
+      } catch (error) {
+        // Popup may already be closed.
+      }
+
+      window.clearInterval(polling);
+    }
+  };
+
+  const polling = window.setInterval(
+    checkConnection,
+    2000
+  );
+
+  const popupWatcher = window.setInterval(() => {
+    if (popup.closed) {
+      window.clearInterval(popupWatcher);
+
+      checkConnection().finally(() => {
+        window.clearInterval(polling);
+        setYoutubeLoading(false);
+      });
+    }
+  }, 1000);
+};
+
+const disconnectYouTube = async () => {
+  try {
+    setYoutubeLoading(true);
+    setYoutubeOAuthError("");
+
+    const response = await fetch(
+      "http://localhost:5000/api/oauth/youtube",
+      {
+        method: "DELETE",
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || data.success === false) {
+      throw new Error(
+        data.message || "Failed to disconnect YouTube."
+      );
+    }
+
+    setYoutubeConnected(false);
+
+    await fetchYouTubeOAuthStatus();
+  } catch (error) {
+    console.error(
+      "YouTube disconnect failed:",
+      error
+    );
+
+    setYoutubeOAuthError(
+      error.message || "Failed to disconnect YouTube."
+    );
+  } finally {
+    setYoutubeLoading(false);
+  }
+};
   /* =====================================================
      GENERATE STREAM KEY
   ===================================================== */
@@ -889,7 +1018,87 @@ export default function Destinations() {
         </button>
 
       </div>
+        {/* =================================================
+    YOUTUBE OAUTH CONNECTION
+================================================= */}
 
+<div className="rounded-2xl border border-white/10 bg-[#111118] p-5">
+  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex items-center gap-3">
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10">
+        <FaYoutube className="h-5 w-5 text-red-400" />
+      </div>
+
+      <div>
+        <h2 className="font-semibold text-white">
+          YouTube Account Connection
+        </h2>
+
+        <p className="mt-1 text-sm text-zinc-500">
+          Connect your YouTube account using Google OAuth.
+        </p>
+      </div>
+    </div>
+
+    <div className="flex flex-wrap items-center gap-2">
+      <span
+        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${
+          youtubeConnected
+            ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+            : "border-yellow-500/20 bg-yellow-500/10 text-yellow-400"
+        }`}
+      >
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${
+            youtubeConnected
+              ? "bg-emerald-400"
+              : "bg-yellow-400"
+          }`}
+        />
+
+        {youtubeConnected
+          ? "Connected"
+          : "Not Connected"}
+      </span>
+
+      <button
+        onClick={fetchYouTubeOAuthStatus}
+        disabled={youtubeLoading}
+        className="rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-400 transition hover:bg-white/5 hover:text-white disabled:opacity-50"
+      >
+        Refresh Status
+      </button>
+
+      {youtubeConnected ? (
+        <button
+          onClick={disconnectYouTube}
+          disabled={youtubeLoading}
+          className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+        >
+          {youtubeLoading
+            ? "Processing..."
+            : "Disconnect YouTube"}
+        </button>
+      ) : (
+        <button
+          onClick={connectYouTube}
+          disabled={youtubeLoading}
+          className="rounded-lg bg-indigo-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {youtubeLoading
+            ? "Connecting..."
+            : "Connect YouTube"}
+        </button>
+      )}
+    </div>
+  </div>
+
+  {youtubeOAuthError && (
+    <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+      {youtubeOAuthError}
+    </div>
+  )}
+</div>
       {/* =================================================
           ERROR
       ================================================= */}

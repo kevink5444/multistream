@@ -9,6 +9,7 @@ const {
 const {
     saveTokens,
     loadTokens,
+    deleteTokens,
 } = require("../services/tokenStorageService");
 
 /* =========================================================
@@ -23,15 +24,25 @@ const oauthStates = new Map();
    ========================================================= */
 
 const connectYouTube = (req, res) => {
-    const state = crypto.randomBytes(32).toString("hex");
+    try {
+        const state = crypto.randomBytes(32).toString("hex");
 
-    oauthStates.set(state, {
-        createdAt: Date.now(),
-    });
+        oauthStates.set(state, {
+            createdAt: Date.now(),
+        });
 
-    const authUrl = generateAuthUrl(state);
+        const authUrl = generateAuthUrl(state);
 
-    res.redirect(authUrl);
+        res.redirect(authUrl);
+
+    } catch (error) {
+        console.error("YouTube Connect Error:", error.message);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to initiate YouTube connection.",
+        });
+    }
 };
 
 /* =========================================================
@@ -116,7 +127,7 @@ const youtubeCallback = async (req, res) => {
 
         saveTokens(tokens);
 
-        /* OAuth success response */
+        /* Successful connection */
 
         res.json({
             success: true,
@@ -138,10 +149,87 @@ const youtubeCallback = async (req, res) => {
 };
 
 /* =========================================================
+   CHECK YOUTUBE CONNECTION STATUS
+   GET /api/oauth/status
+   ========================================================= */
+
+const getYouTubeConnectionStatus = (req, res) => {
+    try {
+        const tokens = loadTokens();
+
+        if (!tokens) {
+            return res.json({
+                success: true,
+                connected: false,
+                message: "YouTube is not connected.",
+            });
+        }
+
+        res.json({
+            success: true,
+            connected: true,
+            message: "YouTube is connected.",
+            tokenInfo: {
+                hasAccessToken: Boolean(
+                    tokens.access_token
+                ),
+                hasRefreshToken: Boolean(
+                    tokens.refresh_token
+                ),
+                expiryDate:
+                    tokens.expiry_date || null,
+            },
+        });
+
+    } catch (error) {
+        console.error(
+            "YouTube Status Error:",
+            error.message
+        );
+
+        res.status(500).json({
+            success: false,
+            connected: false,
+            message: "Failed to check YouTube connection.",
+        });
+    }
+};
+
+/* =========================================================
+   DISCONNECT YOUTUBE
+   DELETE /api/oauth/youtube
+   ========================================================= */
+
+const disconnectYouTube = (req, res) => {
+    try {
+        deleteTokens();
+
+        res.json({
+            success: true,
+            connected: false,
+            message: "YouTube disconnected successfully.",
+        });
+
+    } catch (error) {
+        console.error(
+            "YouTube Disconnect Error:",
+            error.message
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to disconnect YouTube.",
+        });
+    }
+};
+
+/* =========================================================
    EXPORT CONTROLLER
    ========================================================= */
 
 module.exports = {
     connectYouTube,
     youtubeCallback,
+    getYouTubeConnectionStatus,
+    disconnectYouTube,
 };
