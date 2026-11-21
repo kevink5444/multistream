@@ -6,6 +6,11 @@ const {
     getChannelInfo,
 } = require("../services/youtubeOAuthService");
 
+const {
+    saveTokens,
+    loadTokens,
+} = require("../services/tokenStorageService");
+
 /* =========================================================
    TEMPORARY OAUTH STATE STORAGE
    ========================================================= */
@@ -36,7 +41,13 @@ const connectYouTube = (req, res) => {
 
 const youtubeCallback = async (req, res) => {
     try {
-        const { code, state, error } = req.query;
+        const {
+            code,
+            state,
+            error,
+        } = req.query;
+
+        /* Authorization denied */
 
         if (error) {
             return res.status(400).json({
@@ -46,12 +57,16 @@ const youtubeCallback = async (req, res) => {
             });
         }
 
+        /* Validate OAuth parameters */
+
         if (!code || !state) {
             return res.status(400).json({
                 success: false,
                 message: "Missing OAuth code or state.",
             });
         }
+
+        /* Validate OAuth state */
 
         const savedState = oauthStates.get(state);
 
@@ -62,12 +77,13 @@ const youtubeCallback = async (req, res) => {
             });
         }
 
-        // State hanya dapat digunakan satu kali
         oauthStates.delete(state);
 
-        // State berlaku maksimal 10 menit
+        /* Check OAuth session expiration */
+
         const stateExpired =
-            Date.now() - savedState.createdAt > 10 * 60 * 1000;
+            Date.now() - savedState.createdAt >
+            10 * 60 * 1000;
 
         if (stateExpired) {
             return res.status(400).json({
@@ -76,11 +92,31 @@ const youtubeCallback = async (req, res) => {
             });
         }
 
-        // Tukar authorization code dengan token
+        /* Exchange authorization code */
+
         const tokens = await exchangeCode(code);
 
-        // Ambil informasi channel YouTube
+        /* Preserve existing refresh token */
+
+        const existingTokens = loadTokens();
+
+        if (
+            !tokens.refresh_token &&
+            existingTokens?.refresh_token
+        ) {
+            tokens.refresh_token =
+                existingTokens.refresh_token;
+        }
+
+        /* Get authenticated YouTube channel */
+
         const channelInfo = await getChannelInfo(tokens);
+
+        /* Save tokens securely */
+
+        saveTokens(tokens);
+
+        /* OAuth success response */
 
         res.json({
             success: true,
@@ -89,7 +125,10 @@ const youtubeCallback = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("YouTube OAuth Error:", error.message);
+        console.error(
+            "YouTube OAuth Error:",
+            error.message
+        );
 
         res.status(500).json({
             success: false,
