@@ -1,12 +1,33 @@
-const liveService = require("../services/youtubeLiveService");
+const {
+    createYouTubeLiveConfiguration,
+    verifyYouTubeConnection,
+} = require("../services/youtubeLiveService");
 
-const createYouTubeLiveConfiguration =
-    liveService.createYouTubeLiveConfiguration;
 
-/* =========================================================
-   CREATE YOUTUBE LIVE CONFIGURATION
-   POST /api/youtube/live/configuration
-========================================================= */
+// 2. VERIFY YOUTUBE API CONNECTION
+const verifyConnection = async (req, res) => {
+    try {
+        const result = await verifyYouTubeConnection();
+
+        return res.status(200).json({
+            success: true,
+            message: "YouTube API connection verified successfully.",
+            data: result,
+        });
+
+    } catch (error) {
+        console.error(
+            "[YouTube Live Controller] Connection verification failed:",
+            error.message
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to verify YouTube API connection.",
+            error: error.message,
+        });
+    }
+};
 
 const createLiveConfiguration = async (req, res) => {
     try {
@@ -173,10 +194,7 @@ const createLiveConfiguration = async (req, res) => {
     }
 };
 
-/* =========================================================
-   EXPORT CONTROLLER
-========================================================= */
-
 module.exports = {
+    verifyConnection,
     createLiveConfiguration,
 };

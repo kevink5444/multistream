@@ -38,21 +38,12 @@ import { api } from "../services/api";
 
 const platformConfig = {
   youtube: {
-    name: "YouTube",
+    name: "YouTube Live",
     color: "text-red-400",
     bg: "bg-red-500/10",
     border: "border-red-500/20",
     icon: FaYoutube,
     serverUrl: "rtmp://a.rtmp.youtube.com/live2",
-  },
-
-  twitch: {
-    name: "Twitch",
-    color: "text-purple-400",
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/20",
-    icon: FaTwitch,
-    serverUrl: "rtmp://live.twitch.tv/app",
   },
 
   facebook: {
@@ -65,29 +56,11 @@ const platformConfig = {
   },
 
   instagram: {
-    name: "Instagram",
+    name: "Instagram Live",
     color: "text-pink-400",
     bg: "bg-pink-500/10",
     border: "border-pink-500/20",
     icon: FaInstagram,
-    serverUrl: "",
-  },
-
-  kick: {
-    name: "Kick",
-    color: "text-green-400",
-    bg: "bg-green-500/10",
-    border: "border-green-500/20",
-    icon: Radio,
-    serverUrl: "rtmp://example.com/live",
-  },
-
-  custom: {
-    name: "Custom RTMP",
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20",
-    icon: Globe,
     serverUrl: "",
   },
 };
@@ -185,10 +158,10 @@ function DestinationCard({
   onDelete,
 }) {
   const config =
-    platformConfig[destination.platform] ||
-    platformConfig.custom;
+  platformConfig[destination.platform] ||
+  platformConfig.youtube;
 
-  const Icon = config.icon;
+const Icon = config.icon;
 
   return (
     <div className="rounded-xl border border-white/10 bg-[#17171f] p-4 transition hover:border-white/20">
@@ -444,15 +417,34 @@ function DestinationModal({
               }
               className="w-full rounded-xl border border-white/10 bg-[#1c1c26] px-4 py-3 text-sm text-white outline-none focus:border-indigo-500/50"
             >
-              <option value="youtube">YouTube</option>
-              <option value="twitch">Twitch</option>
-              <option value="facebook">Facebook</option>
-              <option value="instagram">Instagram</option>
-              <option value="kick">Kick</option>
-              <option value="custom">Custom RTMP</option>
+            <option value="youtube">YouTube Live</option>
+            <option value="facebook">Facebook Live</option>
+            <option value="instagram">Instagram Live</option>
             </select>
 
           </div>
+          {/* INSTAGRAM INFORMATION */}
+
+{platform === "instagram" && (
+  <div className="rounded-xl border border-pink-500/20 bg-pink-500/5 p-4">
+    <div className="flex items-start gap-3">
+      <FaInstagram className="mt-0.5 h-5 w-5 shrink-0 text-pink-400" />
+
+      <div>
+        <p className="text-sm font-medium text-pink-300">
+          Instagram Live Setup
+        </p>
+
+        <p className="mt-2 text-xs leading-5 text-zinc-400">
+          Enter the RTMP Server URL and Stream Key provided
+          by your Instagram Live streaming setup.
+          Availability of RTMP streaming credentials depends
+          on your account and Instagram's supported features.
+        </p>
+      </div>
+    </div>
+  </div>
+)}
               {/* CONNECTION METHOD */}
 
 <div>

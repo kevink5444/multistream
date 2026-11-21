@@ -1,11 +1,16 @@
+
 const NodeMediaServer = require("node-media-server");
 
 const {
     startForwarder,
-    stopForwarder,
+    stopForwardersByStream,
 } = require("./streamForwarder");
 
 const destinationService = require("./destinationService");
+
+/* =========================================================
+   RTMP SERVER CONFIGURATION
+========================================================= */
 
 const config = {
     rtmp: {
@@ -15,34 +20,54 @@ const config = {
         ping: 30,
         ping_timeout: 60,
     },
+
     logType: 3,
 };
 
 const nms = new NodeMediaServer(config);
 
-// ========================================
-// RTMP CONNECTION
-// ========================================
+/* =========================================================
+   SUPPORTED PLATFORMS
+========================================================= */
 
-nms.on("preConnect", (...args) => {
-    console.log("[RTMP] Client connecting");
+const SUPPORTED_PLATFORMS = [
+    "youtube",
+    "facebook",
+    "instagram",
+];
+
+/* =========================================================
+   PUBLISHED STREAM TRACKING
+
+   Mencegah postPublish diproses berulang
+   untuk session yang sama.
+========================================================= */
+
+const processedStreams = new Set();
+
+/* =========================================================
+   RTMP CONNECTION
+========================================================= */
+
+nms.on("preConnect", () => {
+    console.log("[RTMP] Client connecting...");
 });
 
-nms.on("postConnect", (...args) => {
-    console.log("[RTMP] Client connected");
+nms.on("postConnect", () => {
+    console.log("[RTMP] Client connected.");
 });
 
-// ========================================
-// STREAM START
-// ========================================
+/* =========================================================
+   STREAM START
+========================================================= */
 
-nms.on("prePublish", (...args) => {
-    console.log("[RTMP] Incoming stream");
+nms.on("prePublish", () => {
+    console.log("[RTMP] Incoming stream detected.");
 });
 
-// ========================================
-// STREAM PUBLISHED
-// ========================================
+/* =========================================================
+   STREAM PUBLISHED
+========================================================= */
 
 nms.on("postPublish", (...args) => {
     const session = args[0];
@@ -55,89 +80,264 @@ nms.on("postPublish", (...args) => {
     const streamPath = session.streamPath;
     const streamId = session.id;
 
+    /* =====================================================
+       PREVENT DUPLICATE EVENT
+    ===================================================== */
+
+    if (processedStreams.has(streamId)) {
+        console.warn(
+            `[RTMP] Stream already processed: ${streamId}`
+        );
+
+        return;
+    }
+
+    processedStreams.add(streamId);
+
     console.log("------------------------------------");
-    console.log("[RTMP] Stream started");
+    console.log("[RTMP] Stream published");
     console.log(`Stream ID: ${streamId}`);
     console.log(`Stream Path: ${streamPath}`);
     console.log("------------------------------------");
 
-    const sourceUrl = `rtmp://127.0.0.1:1935${streamPath}`;
+    const sourceUrl =
+        `rtmp://127.0.0.1:1935${streamPath}`;
 
-    // Ambil destination yang sudah tersimpan
-    const destinations = destinationService.getAllDestinations();
+    /* =====================================================
+       GET DESTINATIONS
+    ===================================================== */
 
-    // Cari destination YouTube yang memiliki stream key
-    const youtubeDestinations = destinations.filter((destination) => {
-        return (
-            destination.platform === "youtube" &&
-            destination.streamKey &&
-            destination.streamUrl
+    let destinations = [];
+
+    try {
+        destinations =
+            destinationService.getAllDestinations() || [];
+    } catch (error) {
+        console.error(
+            "[Forwarder] Failed to retrieve destinations:",
+            error.message
         );
-    });
 
-    if (youtubeDestinations.length === 0) {
-        console.log("[Forwarder] YouTube destination belum dikonfigurasi.");
+        processedStreams.delete(streamId);
         return;
     }
 
-    // Mulai forwarding ke setiap destination
-    youtubeDestinations.forEach((destination) => {
-        const destinationUrl =
-            `${destination.streamUrl}/${destination.streamKey}`;
+    /* =====================================================
+       FILTER DESTINATIONS
+    ===================================================== */
 
-        const forwarderId = `${streamId}_${destination.platform}`;
+    const activeDestinations = destinations.filter(
+        (destination) => {
+            const platform = String(
+                destination.platform || ""
+            )
+                .toLowerCase()
+                .trim();
 
-        startForwarder(
-            forwarderId,
-            sourceUrl,
-            destinationUrl
+            const isSupported =
+                SUPPORTED_PLATFORMS.includes(platform);
+
+            const isEnabled =
+                destination.status !== "disabled";
+
+            const hasStreamKey =
+                typeof destination.streamKey === "string" &&
+                destination.streamKey.trim() !== "";
+
+            const hasStreamUrl =
+                typeof destination.streamUrl === "string" &&
+                destination.streamUrl.trim() !== "";
+
+            return (
+                isSupported &&
+                isEnabled &&
+                hasStreamKey &&
+                hasStreamUrl
+            );
+        }
+    );
+
+    /* =====================================================
+       NO DESTINATION
+    ===================================================== */
+
+    if (activeDestinations.length === 0) {
+        console.log(
+            "[Forwarder] No active destination is configured."
         );
-    });
+
+        return;
+    }
+
+    console.log(
+        `[Forwarder] Found ${activeDestinations.length} active destination(s).`
+    );
+
+    /* =====================================================
+       START FORWARDING
+    ===================================================== */
+
+    activeDestinations.forEach(
+        (destination, index) => {
+            try {
+                const platform = String(
+                    destination.platform || ""
+                )
+                    .toLowerCase()
+                    .trim();
+
+                const streamUrl = String(
+                    destination.streamUrl || ""
+                )
+                    .trim()
+                    .replace(/\/+$/, "");
+
+                const streamKey = String(
+                    destination.streamKey || ""
+                ).trim();
+
+                const destinationUrl =
+                    `${streamUrl}/${streamKey}`;
+
+                /* ---------------------------------------------
+                   DESTINATION ID
+                --------------------------------------------- */
+
+                const destinationId =
+                    destination.id ??
+                    `${platform}_${index}`;
+
+                /* ---------------------------------------------
+                   FORWARDER ID
+
+                   Satu stream + satu destination
+                   memiliki satu forwarder.
+                --------------------------------------------- */
+
+                const forwarderId =
+                    `${streamId}_destination_${destinationId}`;
+
+                /* ---------------------------------------------
+                   DESTINATION METADATA
+                --------------------------------------------- */
+
+                const metadata = {
+                    streamId,
+                    destinationId,
+                    platform,
+                    destinationName:
+                        destination.name || "Unnamed",
+                    destinationUrl: streamUrl,
+                };
+
+                console.log("------------------------------------");
+                console.log("[Forwarder] Destination selected");
+                console.log(`Platform: ${platform}`);
+                console.log(
+                    `Channel: ${destination.name || "Unnamed"}`
+                );
+                console.log(
+                    `Destination ID: ${destinationId}`
+                );
+                console.log("------------------------------------");
+
+                /* ---------------------------------------------
+                   START RELAY
+                --------------------------------------------- */
+
+                const started = startForwarder(
+                    forwarderId,
+                    sourceUrl,
+                    destinationUrl,
+                    metadata
+                );
+
+                if (!started) {
+                    console.warn(
+                        `[Forwarder] Could not start destination: ${destinationId}`
+                    );
+                }
+            } catch (error) {
+                /* ---------------------------------------------
+                   ERROR IN ONE DESTINATION
+
+                   Tidak menghentikan destination lainnya.
+                --------------------------------------------- */
+
+                console.error(
+                    `[Forwarder] Failed to process destination ${index}:`,
+                    error.message
+                );
+            }
+        }
+    );
 });
 
-// ========================================
-// STREAM STOP
-// ========================================
+/* =========================================================
+   STREAM STOP
+========================================================= */
 
 nms.on("donePublish", (...args) => {
     const session = args[0];
 
     if (!session) {
-        console.log("[RTMP] Stream stopped");
+        console.log("[RTMP] Stream stopped.");
         return;
     }
 
     const streamId = session.id;
 
     console.log("------------------------------------");
-    console.log("[RTMP] Stream stopped");
+    console.log("[RTMP] Stream unpublished");
     console.log(`Stream ID: ${streamId}`);
     console.log("------------------------------------");
 
-    // Stop forwarding untuk stream ini
-    stopForwarder(`${streamId}_youtube`);
+    /* =====================================================
+       STOP ALL FORWARDERS FOR THIS STREAM
+    ===================================================== */
+
+    const stoppedCount =
+        stopForwardersByStream(streamId);
+
+    console.log(
+        `[Forwarder] Stop requested for ${stoppedCount} destination(s).`
+    );
+
+    /* =====================================================
+       CLEANUP
+    ===================================================== */
+
+    processedStreams.delete(streamId);
 });
 
-// ========================================
-// CLIENT DISCONNECTED
-// ========================================
+/* =========================================================
+   CLIENT DISCONNECTED
+========================================================= */
 
-nms.on("doneConnect", (...args) => {
-    console.log("[RTMP] Client disconnected");
+nms.on("doneConnect", () => {
+    console.log("[RTMP] Client disconnected.");
 });
 
-// ========================================
-// START RTMP SERVER
-// ========================================
+/* =========================================================
+   START RTMP SERVER
+========================================================= */
 
 function startRTMPServer() {
     nms.run();
 
     console.log("------------------------------------");
     console.log("MultiStream RTMP Server Started");
-    console.log("RTMP Server: rtmp://localhost:1935");
+    console.log("RTMP Ingest: rtmp://localhost:1935/live");
+    console.log("Supported Destinations:");
+    console.log("- YouTube Live");
+    console.log("- Facebook Live");
+    console.log("- Instagram Live");
     console.log("------------------------------------");
 }
+
+/* =========================================================
+   EXPORT
+========================================================= */
 
 module.exports = {
     startRTMPServer,

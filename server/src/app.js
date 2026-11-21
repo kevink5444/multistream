@@ -7,6 +7,8 @@ const cors = require("cors");
 
 const destinationRoutes = require("./routes/destinationRoutes");
 const youtubeOAuthRoutes = require("./routes/youtubeOAuthRoutes");
+const youtubeLiveRoutes = require("./routes/youtubeLiveRoutes");
+const forwarderRoutes = require("./routes/forwarderRoutes");
 
 /* =========================================================
    INITIALIZE EXPRESS
@@ -61,7 +63,24 @@ app.get("/api/status", (req, res) => {
    ========================================================= */
 
 app.use("/api/destinations", destinationRoutes);
+
+/* =========================================================
+   YOUTUBE OAUTH ROUTES
+   ========================================================= */
+
 app.use("/api/oauth", youtubeOAuthRoutes);
+
+/* =========================================================
+   YOUTUBE LIVE ROUTES
+   ========================================================= */
+
+app.use("/api/youtube/live", youtubeLiveRoutes);
+
+/* =========================================================
+   FORWARDER ROUTES
+   ========================================================= */
+
+app.use("/api/forwarders", forwarderRoutes);
 
 /* =========================================================
    EXPORT APPLICATION

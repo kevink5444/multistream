@@ -138,6 +138,37 @@ const createLiveStream = async ({
 
     return response.data;
 };
+/* =========================================================
+   VERIFY YOUTUBE API CONNECTION
+========================================================= */
+
+const verifyYouTubeConnection = async () => {
+    const youtube = getAuthenticatedYouTube();
+
+    const response = await youtube.channels.list({
+        part: ["snippet", "status"],
+        mine: true,
+    });
+
+    const channels = response.data.items || [];
+
+    if (channels.length === 0) {
+        throw new Error(
+            "No YouTube channel found for this authenticated account."
+        );
+    }
+
+    const channel = channels[0];
+
+    return {
+        success: true,
+        connected: true,
+        channel: {
+            id: channel.id,
+            title: channel.snippet?.title || null,
+        },
+    };
+};
 
 /* =========================================================
    BIND BROADCAST TO LIVE STREAM
@@ -299,6 +330,7 @@ const createYouTubeLiveConfiguration = async ({
 
 module.exports = {
     getAuthenticatedYouTube,
+    verifyYouTubeConnection,
     createLiveBroadcast,
     createLiveStream,
     bindLiveBroadcast,
