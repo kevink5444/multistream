@@ -6,6 +6,7 @@ const express = require("express");
 const cors = require("cors");
 
 const destinationRoutes = require("./routes/destinationRoutes");
+const youtubeOAuthRoutes = require("./routes/youtubeOAuthRoutes");
 
 /* =========================================================
    INITIALIZE EXPRESS
@@ -60,6 +61,7 @@ app.get("/api/status", (req, res) => {
    ========================================================= */
 
 app.use("/api/destinations", destinationRoutes);
+app.use("/api/oauth", youtubeOAuthRoutes);
 
 /* =========================================================
    EXPORT APPLICATION

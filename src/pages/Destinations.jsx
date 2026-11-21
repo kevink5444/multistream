@@ -342,6 +342,7 @@ function DestinationModal({
   );
 
   const [showKey, setShowKey] = useState(false);
+  const [connectionMethod, setConnectionMethod] = useState("manual");
 
   /* CHANGE PLATFORM */
 
@@ -452,7 +453,71 @@ function DestinationModal({
             </select>
 
           </div>
+              {/* CONNECTION METHOD */}
 
+<div>
+  <label className="mb-2 block text-sm text-zinc-300">
+    Connection Method
+  </label>
+
+  <div className="grid grid-cols-2 gap-3">
+    {/* AUTOMATIC */}
+    <button
+      type="button"
+      disabled
+      className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-left opacity-60 cursor-not-allowed"
+    >
+      <div className="flex items-center gap-2">
+        <ShieldCheck className="h-5 w-5 text-indigo-400" />
+
+        <span className="text-sm font-medium text-white">
+          Automatic
+        </span>
+      </div>
+
+      <p className="mt-2 text-xs text-zinc-500">
+        OAuth / API Connection
+      </p>
+
+      <span className="mt-3 inline-block rounded-full bg-white/5 px-2 py-1 text-[10px] text-zinc-500">
+        Coming Soon
+      </span>
+    </button>
+
+    {/* MANUAL */}
+    <button
+      type="button"
+      onClick={() => setConnectionMethod("manual")}
+      className={`rounded-xl border p-4 text-left transition ${
+        connectionMethod === "manual"
+          ? "border-indigo-500/40 bg-indigo-500/10"
+          : "border-white/10 bg-white/[0.02] hover:bg-white/5"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <Server
+          className={`h-5 w-5 ${
+            connectionMethod === "manual"
+              ? "text-indigo-400"
+              : "text-zinc-400"
+          }`}
+        />
+
+        <span className="text-sm font-medium text-white">
+          Manual
+        </span>
+      </div>
+
+      <p className="mt-2 text-xs text-zinc-500">
+        RTMP Configuration
+      </p>
+
+      <span className="mt-3 inline-block rounded-full bg-indigo-500/10 px-2 py-1 text-[10px] text-indigo-400">
+        Available
+      </span>
+    </button>
+  </div>
+</div>
           {/* SERVER URL */}
 
           <div>

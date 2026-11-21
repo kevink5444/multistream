@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "name": "YouTube",
+    "platform": "youtube",
+    "status": "connected",
+    "streamKey": "",
+    "streamUrl": "rtmp://a.rtmp.youtube.com/live2",
+    "createdAt": "2026-11-20T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "name": "Twitch",
+    "platform": "twitch",
+    "status": "connected",
+    "streamKey": "",
+    "streamUrl": "rtmp://live.twitch.tv/app",
+    "createdAt": "2026-11-20T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "name": "\tPersistence Test 2",
+    "platform": "custom",
+    "status": "connected",
+    "streamKey": "\tTEST-KEY-456",
+    "streamUrl": "rtmp://test.example.com/live",
+    "createdAt": "2026-11-20T14:36:13.175Z"
+  }
+]

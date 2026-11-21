@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# OAuth credentials and tokens
+oauth-tokens.json
+tokens.json
+server/oauth-tokens.json
+server/tokens.json
+# Encrypted OAuth token storage
+server/src/data/oauth-tokens.enc

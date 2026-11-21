@@ -2,49 +2,43 @@
    DESTINATION SERVICE
    ========================================================= */
 
-/*
-  Temporary storage for streaming destinations.
+const fs = require("fs");
+const path = require("path");
 
-  Data ini masih disimpan di memory.
-  Jika backend restart, data akan kembali ke data awal.
-*/
+/* =========================================================
+   DATA STORAGE
+   ========================================================= */
 
-let destinations = [
-  {
-    id: 1,
-    name: "YouTube",
-    platform: "youtube",
-    status: "connected",
-    streamKey: "",
-    streamUrl: "rtmp://a.rtmp.youtube.com/live2",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    name: "Twitch",
-    platform: "twitch",
-    status: "connected",
-    streamKey: "",
-    streamUrl: "rtmp://live.twitch.tv/app",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    name: "Facebook Live",
-    platform: "facebook",
-    status: "pending",
-    streamKey: "",
-    streamUrl: "rtmps://live-api-s.facebook.com:443/rtmp",
-    createdAt: new Date().toISOString(),
-  },
-];
+const dataPath = path.join(__dirname, "../data/destinations.json");
+
+/* =========================================================
+   READ DESTINATIONS
+   ========================================================= */
+
+const readDestinations = () => {
+  const data = fs.readFileSync(dataPath, "utf8");
+
+  return JSON.parse(data);
+};
+
+/* =========================================================
+   SAVE DESTINATIONS
+   ========================================================= */
+
+const saveDestinations = (destinations) => {
+  fs.writeFileSync(
+    dataPath,
+    JSON.stringify(destinations, null, 2),
+    "utf8"
+  );
+};
 
 /* =========================================================
    GET ALL DESTINATIONS
    ========================================================= */
 
 const getAllDestinations = () => {
-  return destinations;
+  return readDestinations();
 };
 
 /* =========================================================
@@ -52,6 +46,8 @@ const getAllDestinations = () => {
    ========================================================= */
 
 const getDestinationById = (id) => {
+  const destinations = readDestinations();
+
   return destinations.find(
     (destination) => destination.id === Number(id)
   );
@@ -62,6 +58,8 @@ const getDestinationById = (id) => {
    ========================================================= */
 
 const createDestination = (data) => {
+  const destinations = readDestinations();
+
   const newDestination = {
     id:
       destinations.length > 0
@@ -78,6 +76,8 @@ const createDestination = (data) => {
 
   destinations.push(newDestination);
 
+  saveDestinations(destinations);
+
   return newDestination;
 };
 
@@ -86,6 +86,8 @@ const createDestination = (data) => {
    ========================================================= */
 
 const updateDestination = (id, data) => {
+  const destinations = readDestinations();
+
   const destinationIndex = destinations.findIndex(
     (destination) => destination.id === Number(id)
   );
@@ -100,6 +102,8 @@ const updateDestination = (id, data) => {
     id: Number(id),
   };
 
+  saveDestinations(destinations);
+
   return destinations[destinationIndex];
 };
 
@@ -108,6 +112,8 @@ const updateDestination = (id, data) => {
    ========================================================= */
 
 const deleteDestination = (id) => {
+  const destinations = readDestinations();
+
   const destinationIndex = destinations.findIndex(
     (destination) => destination.id === Number(id)
   );
@@ -119,6 +125,8 @@ const deleteDestination = (id) => {
   const deletedDestination = destinations[destinationIndex];
 
   destinations.splice(destinationIndex, 1);
+
+  saveDestinations(destinations);
 
   return deletedDestination;
 };
