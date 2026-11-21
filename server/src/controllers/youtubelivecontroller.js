@@ -1,33 +1,44 @@
-const {
-    createYouTubeLiveConfiguration,
-    verifyYouTubeConnection,
-} = require("../services/youtubeLiveService");
 
+/* =========================================================
+   YOUTUBE LIVE CONTROLLER
+   ========================================================= */
 
-// 2. VERIFY YOUTUBE API CONNECTION
+const youtubeLiveService = require("../services/youtubeLiveService");
+const destinationService = require("../services/destinationService");
+
+/* =========================================================
+   VERIFY YOUTUBE CONNECTION
+   GET /api/youtube/live/verify
+   ========================================================= */
+
 const verifyConnection = async (req, res) => {
     try {
-        const result = await verifyYouTubeConnection();
+        const result =
+            await youtubeLiveService.verifyYouTubeConnection();
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
-            message: "YouTube API connection verified successfully.",
+            message: "YouTube connection verified successfully.",
             data: result,
         });
 
     } catch (error) {
         console.error(
-            "[YouTube Live Controller] Connection verification failed:",
+            "YouTube Verification Error:",
             error.message
         );
 
-        return res.status(500).json({
+        res.status(500).json({
             success: false,
-            message: "Failed to verify YouTube API connection.",
-            error: error.message,
+            message: "Failed to verify YouTube connection.",
         });
     }
 };
+
+/* =========================================================
+   CREATE YOUTUBE LIVE CONFIGURATION
+   POST /api/youtube/live/configuration
+   ========================================================= */
 
 const createLiveConfiguration = async (req, res) => {
     try {
@@ -36,156 +47,149 @@ const createLiveConfiguration = async (req, res) => {
             description,
             privacyStatus,
             resolution,
-            frameRate,
-        } = req.body || {};
+            fps,
+        } = req.body;
 
-        /* ================================================
-           VALIDATE TITLE
-        ================================================ */
+        /* =====================================================
+           VALIDATION
+           ===================================================== */
 
-        if (
-            title !== undefined &&
-            (
-                typeof title !== "string" ||
-                title.trim().length === 0
-            )
-        ) {
+        if (!title || !title.trim()) {
             return res.status(400).json({
                 success: false,
-                message: "Live stream title must be a valid string.",
+                message: "Live stream title is required.",
             });
         }
 
-        /* ================================================
-           VALIDATE PRIVACY STATUS
-        ================================================ */
-
-        const allowedPrivacyStatuses = [
+        const allowedPrivacy = [
             "private",
             "unlisted",
             "public",
         ];
 
-        if (
-            privacyStatus !== undefined &&
-            !allowedPrivacyStatuses.includes(privacyStatus)
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid privacy status.",
-                allowedValues: allowedPrivacyStatuses,
-            });
-        }
-
-        /* ================================================
-           VALIDATE RESOLUTION
-        ================================================ */
-
-        const allowedResolutions = [
+        const allowedResolution = [
             "1080p",
             "720p",
             "480p",
             "360p",
         ];
 
-        if (
-            resolution !== undefined &&
-            !allowedResolutions.includes(resolution)
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid stream resolution.",
-                allowedValues: allowedResolutions,
-            });
-        }
-
-        /* ================================================
-           VALIDATE FRAME RATE
-        ================================================ */
-
-        const allowedFrameRates = [
+        const allowedFps = [
             "30fps",
             "60fps",
         ];
 
-        if (
-            frameRate !== undefined &&
-            !allowedFrameRates.includes(frameRate)
-        ) {
+        const selectedPrivacy =
+            privacyStatus || "unlisted";
+
+        const selectedResolution =
+            resolution || "1080p";
+
+        const selectedFps =
+            fps || "30fps";
+
+        if (!allowedPrivacy.includes(selectedPrivacy)) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid stream frame rate.",
-                allowedValues: allowedFrameRates,
+                message: "Invalid privacy status.",
             });
         }
 
-        /* ================================================
-           CREATE CONFIGURATION
-        ================================================ */
+        if (!allowedResolution.includes(selectedResolution)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid resolution.",
+            });
+        }
 
-        console.log(
-            "[YouTube Live Controller] Creating configuration..."
-        );
+        if (!allowedFps.includes(selectedFps)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid FPS configuration.",
+            });
+        }
+
+        /* =====================================================
+           CREATE YOUTUBE LIVE CONFIGURATION
+           ===================================================== */
 
         const configuration =
-            await createYouTubeLiveConfiguration({
-                title: title?.trim() || "MultiStream Live",
-
-                description:
-                    typeof description === "string"
-                        ? description
-                        : "",
-
-                privacyStatus:
-                    privacyStatus || "unlisted",
-
-                resolution:
-                    resolution || "1080p",
-
-                frameRate:
-                    frameRate || "60fps",
+            await youtubeLiveService.createYouTubeLiveConfiguration({
+                title: title.trim(),
+                description: description || "",
+                privacyStatus: selectedPrivacy,
+                resolution: selectedResolution,
+                fps: selectedFps,
             });
 
-        /* ================================================
-           SUCCESS RESPONSE
-        ================================================ */
+        /* =====================================================
+           VALIDATE RTMP CONFIGURATION
+           ===================================================== */
 
-        return res.status(201).json({
+        if (
+            !configuration ||
+            !configuration.success ||
+            !configuration.rtmp ||
+            !configuration.rtmp.serverUrl ||
+            !configuration.rtmp.streamKey
+        ) {
+            return res.status(500).json({
+                success: false,
+                message:
+                    "YouTube Live was created, but RTMP configuration is incomplete.",
+            });
+        }
+
+        /* =====================================================
+           SAVE DESTINATION AUTOMATICALLY
+           ===================================================== */
+
+        const destination =
+            destinationService.createDestination({
+                name: title.trim(),
+                platform: "youtube",
+                status: "pending",
+                streamUrl:
+                    configuration.rtmp.serverUrl,
+                streamKey:
+                    configuration.rtmp.streamKey,
+            });
+
+        /* =====================================================
+           RESPONSE
+           ===================================================== */
+
+        res.status(201).json({
             success: true,
             message:
-                "YouTube live configuration created successfully.",
-            data: configuration,
+                "YouTube Live configuration created and destination saved successfully.",
+            data: {
+                broadcast:
+                    configuration.broadcast,
+
+                stream:
+                    configuration.stream,
+
+                rtmp:
+                    configuration.rtmp,
+
+                watchUrl:
+                    configuration.watchUrl,
+
+                destination,
+            },
         });
 
     } catch (error) {
         console.error(
-            "[YouTube Live Controller] Error:",
+            "Create YouTube Live Configuration Error:",
             error.message
         );
 
-        /* ================================================
-           HANDLE AUTHENTICATION ERRORS
-        ================================================ */
-
-        if (
-            error.message.includes("not connected") ||
-            error.message.includes("OAuth")
-        ) {
-            return res.status(401).json({
-                success: false,
-                message:
-                    "YouTube account is not connected or authorization has expired.",
-            });
-        }
-
-        /* ================================================
-           HANDLE YOUTUBE API ERRORS
-        ================================================ */
-
-        return res.status(500).json({
+        res.status(500).json({
             success: false,
             message:
-                "Failed to create YouTube live configuration.",
+                "Failed to create YouTube Live configuration.",
             error:
                 process.env.NODE_ENV === "development"
                     ? error.message
@@ -193,6 +197,10 @@ const createLiveConfiguration = async (req, res) => {
         });
     }
 };
+
+/* =========================================================
+   EXPORT CONTROLLER
+   ========================================================= */
 
 module.exports = {
     verifyConnection,

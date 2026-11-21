@@ -16,5 +16,14 @@
     "streamKey": "h7r8-wxkv-qucu-da2z-bxaw",
     "streamUrl": "rtmp://a.rtmp.youtube.com/live2",
     "createdAt": "2026-11-21T08:59:11.289Z"
+  },
+  {
+    "id": 7,
+    "name": "Test",
+    "platform": "youtube",
+    "status": "connected",
+    "streamKey": "tesstream01",
+    "streamUrl": "rtmp://a.rtmp.youtube.com/live2",
+    "createdAt": "2026-11-21T13:58:59.778Z"
   }
 ]
