@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { logout } from "../services/authService";
 
 import {
   Bell,
@@ -16,11 +16,24 @@ function Topbar({
   pageTitle = "Dashboard",
   pageDescription = "Monitor your streaming performance",
   onOpenMobileSidebar,
+  user,
+  onLogout,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const handleLogout = async () => {
+  try {
+    await logout();
 
+    setProfileOpen(false);
+
+    onLogout();
+  } catch (error) {
+    console.error("Logout failed:", error);
+    alert("Logout failed. Please try again.");
+  }
+};
   const notifications = [
     {
       id: 1,
@@ -219,16 +232,16 @@ function Topbar({
             >
               {/* Avatar */}
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-blue-500 text-xs font-semibold text-white">
-                K
+               {user?.name?.charAt(0)?.toUpperCase() || "U"}
               </div>
 
               <div className="hidden text-left xl:block">
                 <p className="text-xs font-medium text-white">
-                  Kevin
+                   {user?.name || "User"}
                 </p>
 
                 <p className="text-[10px] text-gray-500">
-                  Administrator
+                   {user?.role === "admin" ? "Administrator" : "User"}
                 </p>
               </div>
 
@@ -242,11 +255,11 @@ function Topbar({
                 {/* Profile Info */}
                 <div className="border-b border-white/[0.06] px-4 py-3">
                   <p className="text-sm font-medium text-white">
-                    Kevin
+                   {user?.name || "User"}
                   </p>
 
                   <p className="mt-1 text-[11px] text-gray-500">
-                    Administrator
+                    {user?.email || ""}
                   </p>
                 </div>
 
@@ -269,11 +282,11 @@ function Topbar({
                   </button>
 
                   <button
-                    onClick={() => setProfileOpen(false)}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/[0.05]"
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/[0.05]"
                   >
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
                   </button>
                 </div>
               </div>

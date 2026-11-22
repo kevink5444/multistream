@@ -92,7 +92,7 @@ function PlaceholderPage({ title, description }) {
    DASHBOARD LAYOUT
 ===================================== */
 
-function DashboardLayout() {
+function DashboardLayout({ user, onLogout }) {
   /* =====================================
      NAVIGATION STATE
   ===================================== */
@@ -242,11 +242,13 @@ function DashboardLayout() {
             TOPBAR
         ================================= */}
 
-        <Topbar
-          title={currentPage.title}
-          description={currentPage.description}
-          onOpenSidebar={handleOpenMobileSidebar}
-        />
+      <Topbar
+      pageTitle={currentPage.title}
+      pageDescription={currentPage.description}
+      onOpenMobileSidebar={handleOpenMobileSidebar}
+      user={user}
+      onLogout={onLogout}
+      />
 
         {/* =================================
             CONTENT

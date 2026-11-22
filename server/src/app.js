@@ -4,7 +4,9 @@
 
 const express = require("express");
 const cors = require("cors");
+const session = require("express-session");
 
+const authRoutes = require("./routes/authRoutes");
 const destinationRoutes = require("./routes/destinationRoutes");
 const youtubeOAuthRoutes = require("./routes/youtubeOAuthRoutes");
 const youtubeLiveRoutes = require("./routes/youtubeLiveRoutes");
@@ -23,12 +25,36 @@ const app = express();
 app.use(
   cors({
     origin: "http://localhost:5173",
+    credentials: true,
   })
 );
 
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
+
+/* =========================================================
+   SESSION CONFIGURATION
+   ========================================================= */
+
+app.use(
+  session({
+    secret:
+      process.env.SESSION_SECRET ||
+      "multistream-session-secret",
+
+    resave: false,
+
+    saveUninitialized: false,
+
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    },
+  })
+);
 
 /* =========================================================
    ROOT ROUTE
@@ -57,6 +83,12 @@ app.get("/api/status", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+/* =========================================================
+   AUTH ROUTES
+   ========================================================= */
+
+app.use("/api/auth", authRoutes);
 
 /* =========================================================
    DESTINATION ROUTES

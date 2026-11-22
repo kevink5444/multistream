@@ -1,0 +1,22 @@
+[
+  {
+    "id": "user_1795328906936",
+    "name": "Test User",
+    "email": "test@example.com",
+    "passwordHash": "$2b$12$KjJY5RlHF5x2R/RTJjXgxeIalcFwsR0acRPscJv7dqD4U2AlG2NXu",
+    "role": "user",
+    "channelLimit": 2,
+    "status": "active",
+    "createdAt": "2026-11-22T06:28:26.936Z"
+  },
+  {
+    "id": "admin_1795333246880",
+    "name": "Multistream Administrator",
+    "email": "admin@example.com",
+    "passwordHash": "$2b$12$fOV276V46UNPGWsua69Fx.5ISObc.LUUtQeO95Yikc2ECNOIWMspq",
+    "role": "admin",
+    "channelLimit": null,
+    "status": "active",
+    "createdAt": "2026-11-22T07:40:46.881Z"
+  }
+]
