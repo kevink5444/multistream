@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import {
   Plus,
@@ -38,12 +38,21 @@ import { api } from "../services/api";
 
 const platformConfig = {
   youtube: {
-    name: "YouTube Live",
+    name: "YouTube",
     color: "text-red-400",
     bg: "bg-red-500/10",
     border: "border-red-500/20",
     icon: FaYoutube,
     serverUrl: "rtmp://a.rtmp.youtube.com/live2",
+  },
+
+  twitch: {
+    name: "Twitch",
+    color: "text-purple-400",
+    bg: "bg-purple-500/10",
+    border: "border-purple-500/20",
+    icon: FaTwitch,
+    serverUrl: "rtmp://live.twitch.tv/app",
   },
 
   facebook: {
@@ -56,11 +65,29 @@ const platformConfig = {
   },
 
   instagram: {
-    name: "Instagram Live",
+    name: "Instagram",
     color: "text-pink-400",
     bg: "bg-pink-500/10",
     border: "border-pink-500/20",
     icon: FaInstagram,
+    serverUrl: "",
+  },
+
+  kick: {
+    name: "Kick",
+    color: "text-green-400",
+    bg: "bg-green-500/10",
+    border: "border-green-500/20",
+    icon: Radio,
+    serverUrl: "rtmp://example.com/live",
+  },
+
+  custom: {
+    name: "Custom RTMP",
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    icon: Globe,
     serverUrl: "",
   },
 };
@@ -158,10 +185,10 @@ function DestinationCard({
   onDelete,
 }) {
   const config =
-  platformConfig[destination.platform] ||
-  platformConfig.youtube;
+    platformConfig[destination.platform] ||
+    platformConfig.custom;
 
-const Icon = config.icon;
+  const Icon = config.icon;
 
   return (
     <div className="rounded-xl border border-white/10 bg-[#17171f] p-4 transition hover:border-white/20">
@@ -417,34 +444,15 @@ function DestinationModal({
               }
               className="w-full rounded-xl border border-white/10 bg-[#1c1c26] px-4 py-3 text-sm text-white outline-none focus:border-indigo-500/50"
             >
-            <option value="youtube">YouTube Live</option>
-            <option value="facebook">Facebook Live</option>
-            <option value="instagram">Instagram Live</option>
+              <option value="youtube">YouTube</option>
+              <option value="twitch">Twitch</option>
+              <option value="facebook">Facebook</option>
+              <option value="instagram">Instagram</option>
+              <option value="kick">Kick</option>
+              <option value="custom">Custom RTMP</option>
             </select>
 
           </div>
-          {/* INSTAGRAM INFORMATION */}
-
-{platform === "instagram" && (
-  <div className="rounded-xl border border-pink-500/20 bg-pink-500/5 p-4">
-    <div className="flex items-start gap-3">
-      <FaInstagram className="mt-0.5 h-5 w-5 shrink-0 text-pink-400" />
-
-      <div>
-        <p className="text-sm font-medium text-pink-300">
-          Instagram Live Setup
-        </p>
-
-        <p className="mt-2 text-xs leading-5 text-zinc-400">
-          Enter the RTMP Server URL and Stream Key provided
-          by your Instagram Live streaming setup.
-          Availability of RTMP streaming credentials depends
-          on your account and Instagram's supported features.
-        </p>
-      </div>
-    </div>
-  </div>
-)}
               {/* CONNECTION METHOD */}
 
 <div>
@@ -598,10 +606,120 @@ function DestinationModal({
 }
 
 /* =====================================================
+   CREATE YOUTUBE LIVE MODAL
+===================================================== */
+
+function YouTubeLiveModal({ onClose, onCreate, creating }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [privacyStatus, setPrivacyStatus] = useState("unlisted");
+  const [resolution, setResolution] = useState("1080p");
+  const [fps, setFps] = useState("30fps");
+
+  const handleSubmit = (event) => {
+  event.preventDefault();
+
+  // Membuka tab baru saat klik pengguna,
+  // untuk menghindari popup blocker.
+  const studioTab = window.open("", "_blank");
+
+  // Isi tab baru dengan halaman loading.
+  // Jadi pengguna tidak melihat about:blank kosong.
+  if (studioTab) {
+    studioTab.document.open();
+
+    studioTab.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Creating YouTube Live</title>
+
+          <style>
+            * {
+              box-sizing: border-box;
+            }
+
+            body {
+              margin: 0;
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: #09090f;
+              color: #ffffff;
+              font-family: Arial, sans-serif;
+            }
+
+            .container {
+              text-align: center;
+              padding: 32px;
+            }
+
+            .spinner {
+              width: 48px;
+              height: 48px;
+              border: 4px solid #292936;
+              border-top-color: #6366f1;
+              border-radius: 50%;
+              animation: spin 0.8s linear infinite;
+              margin: 0 auto 24px;
+            }
+
+            @keyframes spin {
+              to {
+                transform: rotate(360deg);
+              }
+            }
+
+            h2 {
+              margin: 0 0 12px;
+              font-size: 24px;
+            }
+
+            p {
+              color: #9ca3af;
+              font-size: 14px;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="container">
+            <div class="spinner"></div>
+
+            <h2>Creating YouTube Live</h2>
+
+            <p>
+              Please wait while your Live Control Room is being prepared.
+            </p>
+          </div>
+        </body>
+      </html>
+    `);
+
+    studioTab.document.close();
+  }
+
+  // Kirim konfigurasi dan tab baru ke fungsi parent.
+  onCreate(
+    {
+      title,
+      description,
+      privacyStatus,
+      resolution,
+      fps,
+    },
+    studioTab
+  );
+};
+}
+/* =====================================================
    DESTINATIONS PAGE
 ===================================================== */
 
-export default function Destinations() {
+ export default function Destinations() {
   const [destinations, setDestinations] = useState([]);
 
   const [search, setSearch] = useState("");
@@ -617,6 +735,16 @@ export default function Destinations() {
 
   const [error, setError] = useState("");
 
+  /* YOUTUBE OAUTH CONNECTION */
+  const [youtubeConnected, setYoutubeConnected] = useState(false);
+  const [youtubeConnectionLoading, setYoutubeConnectionLoading] = useState(true);
+  const [youtubeActionLoading, setYoutubeActionLoading] = useState(false);
+  const oauthPopupRef = useRef(null);
+  const [youtubeLiveModalOpen, setYoutubeLiveModalOpen] = useState(false);
+  const [creatingYoutubeLive, setCreatingYoutubeLive] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [successLink, setSuccessLink] = useState("");
+
   /* ENCODER CONFIGURATION */
 
   const [protocol, setProtocol] = useState("RTMP");
@@ -631,11 +759,6 @@ export default function Destinations() {
     useState(false);
 
   const [copied, setCopied] = useState("");
-  /* YOUTUBE OAUTH CONNECTION */
-const [youtubeConnected, setYoutubeConnected] = useState(false);
-const [youtubeLoading, setYoutubeLoading] = useState(false);
-const [youtubeOAuthError, setYoutubeOAuthError] = useState("");
-
   /* =====================================================
      FETCH DESTINATIONS
   ===================================================== */
@@ -667,137 +790,188 @@ const [youtubeOAuthError, setYoutubeOAuthError] = useState("");
     }
   };
 
-  /* INITIAL FETCH */
+  /* =====================================================
+     YOUTUBE OAUTH STATUS & ACTIONS
+  ===================================================== */
 
-  useEffect(() => {
-    fetchDestinations();
-    fetchYouTubeOAuthStatus();
-  }, []);
-/* =====================================================
-   YOUTUBE OAUTH
-===================================================== */
+  const fetchYouTubeConnectionStatus = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/oauth/status");
+      const result = await response.json();
 
-const fetchYouTubeOAuthStatus = async () => {
-  try {
-    const response = await fetch(
-      "http://localhost:5000/api/oauth/status"
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to check YouTube connection."
-      );
-    }
-
-    setYoutubeConnected(Boolean(data.connected));
-    setYoutubeOAuthError("");
-
-    return Boolean(data.connected);
-  } catch (error) {
-    console.error(
-      "YouTube OAuth status check failed:",
-      error
-    );
-
-    setYoutubeOAuthError(
-      error.message || "Unable to check YouTube connection."
-    );
-
-    return false;
-  }
-};
-
-const connectYouTube = () => {
-  setYoutubeLoading(true);
-  setYoutubeOAuthError("");
-
-  const popup = window.open(
-    "http://localhost:5000/api/oauth/youtube",
-    "multistream-youtube-oauth",
-    "width=600,height=750,left=200,top=100"
-  );
-
-  if (!popup) {
-    setYoutubeLoading(false);
-
-    setYoutubeOAuthError(
-      "Popup blocked. Please allow popups for localhost and try again."
-    );
-
-    return;
-  }
-
-  const checkConnection = async () => {
-    const connected = await fetchYouTubeOAuthStatus();
-
-    if (connected) {
-      setYoutubeLoading(false);
-
-      try {
-        popup.close();
-      } catch (error) {
-        // Popup may already be closed.
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to check YouTube connection.");
       }
 
-      window.clearInterval(polling);
+      setYoutubeConnected(Boolean(result.connected));
+      return Boolean(result.connected);
+    } catch (error) {
+      console.error("YouTube connection status error:", error);
+      setYoutubeConnected(false);
+      return false;
+    } finally {
+      setYoutubeConnectionLoading(false);
     }
   };
 
-  const polling = window.setInterval(
-    checkConnection,
-    2000
-  );
+  const connectYouTube = () => {
+    setError("");
 
-  const popupWatcher = window.setInterval(() => {
-    if (popup.closed) {
-      window.clearInterval(popupWatcher);
-
-      checkConnection().finally(() => {
-        window.clearInterval(polling);
-        setYoutubeLoading(false);
-      });
-    }
-  }, 1000);
-};
-
-const disconnectYouTube = async () => {
-  try {
-    setYoutubeLoading(true);
-    setYoutubeOAuthError("");
-
-    const response = await fetch(
+    // Open synchronously so the browser does not block the OAuth popup.
+    oauthPopupRef.current = window.open(
       "http://localhost:5000/api/oauth/youtube",
-      {
+      "multistream_youtube_oauth",
+      "width=600,height=750,left=200,top=100"
+    );
+
+    if (!oauthPopupRef.current) {
+      setError("Popup blocked by browser. Please allow popups for MultiStream and try again.");
+      return;
+    }
+
+    setYoutubeActionLoading(true);
+  };
+
+  const disconnectYouTube = async () => {
+    const confirmed = window.confirm("Disconnect the YouTube account from MultiStream?");
+    if (!confirmed) return;
+
+    try {
+      setYoutubeActionLoading(true);
+      setError("");
+
+      const response = await fetch("http://localhost:5000/api/oauth/youtube", {
         method: "DELETE",
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to disconnect YouTube.");
+      }
+
+      setYoutubeConnected(false);
+    } catch (error) {
+      console.error("YouTube disconnect error:", error);
+      setError(error.message || "Failed to disconnect YouTube.");
+    } finally {
+      setYoutubeActionLoading(false);
+    }
+  };
+
+  /* INITIAL FETCH + OAUTH STATUS CHECK */
+
+  useEffect(() => {
+    fetchDestinations();
+    fetchYouTubeConnectionStatus();
+  }, []);
+
+  // Check status while the OAuth popup is open. The callback currently
+  // displays JSON, so the parent page detects successful token storage.
+  useEffect(() => {
+    if (!youtubeActionLoading || !oauthPopupRef.current) return;
+
+    const intervalId = setInterval(async () => {
+      const connected = await fetchYouTubeConnectionStatus();
+
+      if (connected) {
+        if (oauthPopupRef.current && !oauthPopupRef.current.closed) {
+          oauthPopupRef.current.close();
+        }
+        oauthPopupRef.current = null;
+        setYoutubeActionLoading(false);
+      } else if (!oauthPopupRef.current || oauthPopupRef.current.closed) {
+        oauthPopupRef.current = null;
+        setYoutubeActionLoading(false);
+      }
+    }, 2000);
+
+    return () => clearInterval(intervalId);
+  }, [youtubeActionLoading]);
+
+  /* =====================================================
+     CREATE YOUTUBE LIVE + AUTO-SAVE DESTINATION
+  ===================================================== */
+
+  const createYouTubeLive = async (configuration, studioTab) => {
+  try {
+    setCreatingYoutubeLive(true);
+    setError("");
+    setSuccessMessage("");
+    setSuccessLink("");
+
+    // Request ke backend untuk membuat YouTube Live
+    const response = await fetch(
+      "http://localhost:5000/api/youtube/live/configuration",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(configuration),
       }
     );
 
-    const data = await response.json();
+    const result = await response.json();
 
-    if (!response.ok || data.success === false) {
+    // Periksa apakah request berhasil
+    if (!response.ok || !result.success) {
       throw new Error(
-        data.message || "Failed to disconnect YouTube."
+        result.message || "Failed to create YouTube Live configuration."
       );
     }
 
-    setYoutubeConnected(false);
+    // Ambil URL Live Control Room dari broadcast yang baru dibuat
+    const liveStudioUrl =
+      result.data?.liveStudioUrl ||
+      (result.data?.broadcast?.id
+        ? `https://studio.youtube.com/video/${result.data.broadcast.id}/livestreaming`
+        : "");
 
-    await fetchYouTubeOAuthStatus();
+    const watchUrl = result.data?.watchUrl || "";
+
+    // Pastikan URL Live Control Room tersedia
+    if (!liveStudioUrl) {
+      throw new Error(
+        "YouTube Live berhasil dibuat, tetapi Live Control Room URL tidak ditemukan."
+      );
+    }
+
+    // Redirect tab loading ke Live Control Room broadcast baru
+    if (studioTab && !studioTab.closed) {
+      studioTab.location.replace(liveStudioUrl);
+    }
+
+    // Tutup modal setelah proses berhasil
+    setYoutubeLiveModalOpen(false);
+
+    // Refresh daftar destination
+    await fetchDestinations();
+
+    // Tampilkan pesan sukses
+    setSuccessMessage(
+      "YouTube Live berhasil dibuat dan destination tersimpan."
+    );
+
+    // Simpan link untuk tombol Open Live Control Room
+    setSuccessLink(liveStudioUrl || watchUrl);
+
   } catch (error) {
-    console.error(
-      "YouTube disconnect failed:",
-      error
+    // Jika proses gagal, tutup tab loading
+    if (studioTab && !studioTab.closed) {
+      studioTab.close();
+    }
+
+    console.error("Create YouTube Live error:", error);
+
+    setError(
+      error.message || "Failed to create YouTube Live."
     );
 
-    setYoutubeOAuthError(
-      error.message || "Failed to disconnect YouTube."
-    );
   } finally {
-    setYoutubeLoading(false);
+    setCreatingYoutubeLive(false);
   }
 };
+
   /* =====================================================
      GENERATE STREAM KEY
   ===================================================== */
@@ -1010,87 +1184,101 @@ const disconnectYouTube = async () => {
         </button>
 
       </div>
-        {/* =================================================
-    YOUTUBE OAUTH CONNECTION
-================================================= */}
 
-<div className="rounded-2xl border border-white/10 bg-[#111118] p-5">
-  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <div className="flex items-center gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10">
-        <FaYoutube className="h-5 w-5 text-red-400" />
+      {/* =================================================
+          YOUTUBE ACCOUNT CONNECTION
+      ================================================= */}
+
+      <div className="rounded-2xl border border-white/10 bg-[#111118] p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10">
+              <FaYoutube className="h-5 w-5 text-red-400" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-white">YouTube Account Connection</h2>
+              <p className="mt-1 text-sm text-zinc-500">
+                Connect your Google account to prepare YouTube API integration.
+              </p>
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                {youtubeConnectionLoading ? (
+                  <span className="text-zinc-400">Checking connection...</span>
+                ) : youtubeConnected ? (
+                  <span className="inline-flex items-center gap-2 text-emerald-400">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Account connected
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 text-zinc-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" /> Not connected
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {youtubeConnected ? (
+              <button
+                onClick={disconnectYouTube}
+                disabled={youtubeActionLoading}
+                className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+              >
+                {youtubeActionLoading ? "Please wait..." : "Disconnect YouTube"}
+              </button>
+            ) : (
+              <button
+                onClick={connectYouTube}
+                disabled={youtubeConnectionLoading || youtubeActionLoading}
+                className="flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-600 disabled:opacity-50"
+              >
+                <FaYoutube className="h-4 w-4" />
+                {youtubeActionLoading ? "Waiting for authorization..." : "Connect YouTube"}
+              </button>
+            )}
+            {youtubeConnected && (
+              <button
+                onClick={() => setYoutubeLiveModalOpen(true)}
+                disabled={youtubeActionLoading || creatingYoutubeLive}
+                className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+              >
+                <FaYoutube className="h-4 w-4" />
+                Create YouTube Live
+              </button>
+            )}
+
+            <button
+              onClick={fetchYouTubeConnectionStatus}
+              disabled={youtubeConnectionLoading}
+              className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-white disabled:opacity-50"
+            >
+              Refresh Status
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <h2 className="font-semibold text-white">
-          YouTube Account Connection
-        </h2>
+      {/* =================================================
+          SUCCESS NOTIFICATION
+      ================================================= */}
 
-        <p className="mt-1 text-sm text-zinc-500">
-          Connect your YouTube account using Google OAuth.
-        </p>
-      </div>
-    </div>
-
-    <div className="flex flex-wrap items-center gap-2">
-      <span
-        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${
-          youtubeConnected
-            ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-            : "border-yellow-500/20 bg-yellow-500/10 text-yellow-400"
-        }`}
-      >
-        <span
-          className={`h-1.5 w-1.5 rounded-full ${
-            youtubeConnected
-              ? "bg-emerald-400"
-              : "bg-yellow-400"
-          }`}
-        />
-
-        {youtubeConnected
-          ? "Connected"
-          : "Not Connected"}
-      </span>
-
-      <button
-        onClick={fetchYouTubeOAuthStatus}
-        disabled={youtubeLoading}
-        className="rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-400 transition hover:bg-white/5 hover:text-white disabled:opacity-50"
-      >
-        Refresh Status
-      </button>
-
-      {youtubeConnected ? (
-        <button
-          onClick={disconnectYouTube}
-          disabled={youtubeLoading}
-          className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
-        >
-          {youtubeLoading
-            ? "Processing..."
-            : "Disconnect YouTube"}
-        </button>
-      ) : (
-        <button
-          onClick={connectYouTube}
-          disabled={youtubeLoading}
-          className="rounded-lg bg-indigo-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {youtubeLoading
-            ? "Connecting..."
-            : "Connect YouTube"}
-        </button>
+      {successMessage && (
+        <div className="mb-4 flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-emerald-400">Berhasil</p>
+            <p className="mt-1 text-sm text-emerald-300/80">{successMessage}</p>
+            {successLink && (
+              <a href={successLink} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm font-medium text-emerald-300 underline underline-offset-2">
+                Buka YouTube Live Control Room
+              </a>
+            )}
+          </div>
+          <button onClick={() => { setSuccessMessage(""); setSuccessLink(""); }} className="text-emerald-400 hover:text-emerald-300" aria-label="Dismiss success message">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       )}
-    </div>
-  </div>
 
-  {youtubeOAuthError && (
-    <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
-      {youtubeOAuthError}
-    </div>
-  )}
-</div>
       {/* =================================================
           ERROR
       ================================================= */}
@@ -1615,6 +1803,18 @@ const disconnectYouTube = async () => {
           MODAL
       ================================================= */}
 
+      {youtubeLiveModalOpen && (
+        <YouTubeLiveModal
+          onClose={() => {
+            if (!creatingYoutubeLive) {
+              setYoutubeLiveModalOpen(false);
+            }
+          }}
+          onCreate={createYouTubeLive}
+          creating={creatingYoutubeLive}
+        />
+      )}
+
       {modalOpen && (
         <DestinationModal
           destination={editingDestination}
@@ -1631,4 +1831,4 @@ const disconnectYouTube = async () => {
 
     </div>
   );
-}
+};

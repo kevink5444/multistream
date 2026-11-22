@@ -88,7 +88,7 @@ const createLiveBroadcast = async ({
                 selfDeclaredMadeForKids: false,
             },
             contentDetails: {
-                enableAutoStart: false,
+                enableAutoStart: true,
                 enableAutoStop: false,
                 enableDvr: true,
                 enableEmbed: true,

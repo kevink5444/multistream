@@ -1,4 +1,3 @@
-
 /* =========================================================
    YOUTUBE LIVE CONTROLLER
    ========================================================= */
@@ -8,8 +7,7 @@ const destinationService = require("../services/destinationService");
 
 /* =========================================================
    VERIFY YOUTUBE CONNECTION
-   GET /api/youtube/live/verify
-   ========================================================= */
+========================================================= */
 
 const verifyConnection = async (req, res) => {
     try {
@@ -37,8 +35,7 @@ const verifyConnection = async (req, res) => {
 
 /* =========================================================
    CREATE YOUTUBE LIVE CONFIGURATION
-   POST /api/youtube/live/configuration
-   ========================================================= */
+========================================================= */
 
 const createLiveConfiguration = async (req, res) => {
     try {
@@ -50,9 +47,7 @@ const createLiveConfiguration = async (req, res) => {
             fps,
         } = req.body;
 
-        /* =====================================================
-           VALIDATION
-           ===================================================== */
+        /* VALIDATION */
 
         if (!title || !title.trim()) {
             return res.status(400).json({
@@ -109,9 +104,7 @@ const createLiveConfiguration = async (req, res) => {
             });
         }
 
-        /* =====================================================
-           CREATE YOUTUBE LIVE CONFIGURATION
-           ===================================================== */
+        /* CREATE YOUTUBE LIVE */
 
         const configuration =
             await youtubeLiveService.createYouTubeLiveConfiguration({
@@ -119,30 +112,28 @@ const createLiveConfiguration = async (req, res) => {
                 description: description || "",
                 privacyStatus: selectedPrivacy,
                 resolution: selectedResolution,
-                fps: selectedFps,
+                frameRate: selectedFps,
             });
 
-        /* =====================================================
-           VALIDATE RTMP CONFIGURATION
-           ===================================================== */
+        /* VALIDATE CONFIGURATION */
 
         if (
             !configuration ||
             !configuration.success ||
             !configuration.rtmp ||
             !configuration.rtmp.serverUrl ||
-            !configuration.rtmp.streamKey
+            !configuration.rtmp.streamKey ||
+            !configuration.broadcast ||
+            !configuration.broadcast.id
         ) {
             return res.status(500).json({
                 success: false,
                 message:
-                    "YouTube Live was created, but RTMP configuration is incomplete.",
+                    "YouTube Live was created, but its configuration is incomplete.",
             });
         }
 
-        /* =====================================================
-           SAVE DESTINATION AUTOMATICALLY
-           ===================================================== */
+        /* SAVE DESTINATION AUTOMATICALLY */
 
         const destination =
             destinationService.createDestination({
@@ -155,11 +146,17 @@ const createLiveConfiguration = async (req, res) => {
                     configuration.rtmp.streamKey,
             });
 
-        /* =====================================================
-           RESPONSE
-           ===================================================== */
+        /* GENERATE LIVE STUDIO URL */
 
-        res.status(201).json({
+        const broadcastId =
+            configuration.broadcast.id;
+
+        const liveStudioUrl =
+            `https://studio.youtube.com/video/${broadcastId}/livestreaming`;
+
+        /* RESPONSE */
+
+        return res.status(201).json({
             success: true,
             message:
                 "YouTube Live configuration created and destination saved successfully.",
@@ -175,6 +172,8 @@ const createLiveConfiguration = async (req, res) => {
 
                 watchUrl:
                     configuration.watchUrl,
+
+                liveStudioUrl,
 
                 destination,
             },
@@ -200,7 +199,7 @@ const createLiveConfiguration = async (req, res) => {
 
 /* =========================================================
    EXPORT CONTROLLER
-   ========================================================= */
+========================================================= */
 
 module.exports = {
     verifyConnection,
