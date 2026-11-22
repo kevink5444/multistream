@@ -616,31 +616,24 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
   const [resolution, setResolution] = useState("1080p");
   const [fps, setFps] = useState("30fps");
 
+  // Membuka tab baru saat klik pengguna,
+  // untuk menghindari popup blocker.
   const handleSubmit = (event) => {
   event.preventDefault();
 
-  // Membuka tab baru saat klik pengguna,
-  // untuk menghindari popup blocker.
+  // Membuka tab baru ketika tombol Create Live diklik
   const studioTab = window.open("", "_blank");
 
-  // Isi tab baru dengan halaman loading.
-  // Jadi pengguna tidak melihat about:blank kosong.
+  // Menampilkan halaman loading pada tab baru
   if (studioTab) {
     studioTab.document.open();
-
     studioTab.document.write(`
       <!DOCTYPE html>
-      <html lang="en">
+      <html>
         <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <title>Creating YouTube Live</title>
-
+          <meta charset="UTF-8" />
           <style>
-            * {
-              box-sizing: border-box;
-            }
-
             body {
               margin: 0;
               min-height: 100vh;
@@ -648,61 +641,40 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
               align-items: center;
               justify-content: center;
               background: #09090f;
-              color: #ffffff;
+              color: white;
               font-family: Arial, sans-serif;
             }
-
             .container {
               text-align: center;
-              padding: 32px;
             }
-
             .spinner {
-              width: 48px;
-              height: 48px;
+              width: 45px;
+              height: 45px;
               border: 4px solid #292936;
               border-top-color: #6366f1;
               border-radius: 50%;
               animation: spin 0.8s linear infinite;
-              margin: 0 auto 24px;
+              margin: 0 auto 20px;
             }
-
             @keyframes spin {
               to {
                 transform: rotate(360deg);
               }
             }
-
-            h2 {
-              margin: 0 0 12px;
-              font-size: 24px;
-            }
-
-            p {
-              color: #9ca3af;
-              font-size: 14px;
-            }
           </style>
         </head>
-
         <body>
           <div class="container">
             <div class="spinner"></div>
-
             <h2>Creating YouTube Live</h2>
-
-            <p>
-              Please wait while your Live Control Room is being prepared.
-            </p>
+            <p>Please wait while Live Control Room is being prepared.</p>
           </div>
         </body>
       </html>
     `);
-
     studioTab.document.close();
   }
 
-  // Kirim konfigurasi dan tab baru ke fungsi parent.
   onCreate(
     {
       title,
@@ -1831,4 +1803,4 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
 
     </div>
   );
-};
+ }
