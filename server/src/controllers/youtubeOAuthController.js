@@ -28,7 +28,8 @@ const connectYouTube = (req, res) => {
         const state = crypto.randomBytes(32).toString("hex");
 
         oauthStates.set(state, {
-            createdAt: Date.now(),
+        createdAt: Date.now(),
+        sessionID: req.sessionID,
         });
 
         const authUrl = generateAuthUrl(state);
@@ -102,7 +103,12 @@ const youtubeCallback = async (req, res) => {
                 message: "OAuth session expired. Please try again.",
             });
         }
-
+        if (savedState.sessionID !== req.sessionID) {
+            return res.status(403).json({
+                success: false,
+                message: "OAuth session mismatch. Please try again.",
+            });
+        }
         /* Exchange authorization code */
 
         const tokens = await exchangeCode(code);

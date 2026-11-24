@@ -1,12 +1,16 @@
+
 /* =========================================================
    DESTINATION ROUTES
    ========================================================= */
 
 const express = require("express");
-
 const router = express.Router();
 
 const destinationController = require("../controllers/destinationController");
+const { requireAuth } = require("../middleware/authMiddleware");
+
+// Semua endpoint Destination wajib login
+router.use(requireAuth);
 
 /* =========================================================
    GET ALL DESTINATIONS

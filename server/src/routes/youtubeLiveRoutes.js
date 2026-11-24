@@ -1,8 +1,12 @@
-const express = require("express");
 
+const express = require("express");
 const router = express.Router();
 
 const youtubeLiveController = require("../controllers/youtubeLiveController");
+const { requireAuth } = require("../middleware/authMiddleware");
+
+// Semua endpoint YouTube Live wajib login
+router.use(requireAuth);
 
 /* =========================================================
    VERIFY YOUTUBE API CONNECTION

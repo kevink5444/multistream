@@ -60,9 +60,10 @@ function Dashboard() {
 
     checkBackend();
   }, []);
-/* =======================================================
+
+/* =========================================================
    FORWARDER STATUS MONITOR
-   ======================================================= */
+   ========================================================= */
 
 useEffect(() => {
   let isMounted = true;
@@ -70,8 +71,22 @@ useEffect(() => {
   const fetchForwarderStatus = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/forwarders/status"
+        "http://localhost:5000/api/forwarders/status",
+        {
+          method: "GET",
+          credentials: "include",
+        }
       );
+
+      // Session tidak valid atau user belum login
+      if (response.status === 401) {
+        if (isMounted) {
+          setForwarders([]);
+          setForwarderError("Authentication required.");
+        }
+
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("Failed to fetch forwarder status");
@@ -103,6 +118,7 @@ useEffect(() => {
     clearInterval(interval);
   };
 }, []);
+
 
 
 

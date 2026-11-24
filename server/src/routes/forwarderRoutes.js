@@ -1,3 +1,4 @@
+
 /* =========================================================
    FORWARDER ROUTES
    ========================================================= */
@@ -8,6 +9,11 @@ const router = express.Router();
 const {
   getAllForwarderStatuses,
 } = require("../controllers/forwarderController");
+
+const { requireAuth } = require("../middleware/authMiddleware");
+
+// Semua endpoint Forwarder wajib login
+router.use(requireAuth);
 
 /* =========================================================
    GET ALL FORWARDER STATUSES

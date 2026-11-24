@@ -238,13 +238,19 @@ const getCurrentUser = (req, res) => {
 const logout = (req, res) => {
   req.session.destroy((error) => {
     if (error) {
+      console.error("Logout Error:", error);
+
       return res.status(500).json({
         success: false,
         message: "Logout failed.",
       });
     }
 
-    res.clearCookie("multistream.sid");
+    res.clearCookie("connect.sid", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
 
     return res.status(200).json({
       success: true,

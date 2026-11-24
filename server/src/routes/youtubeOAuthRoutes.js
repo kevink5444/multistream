@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 const youtubeOAuthController = require("../controllers/youtubeOAuthController");
+const { requireAuth } = require("../middleware/authMiddleware");
 
 /* =========================================================
    CONNECT YOUTUBE
@@ -11,6 +12,7 @@ const youtubeOAuthController = require("../controllers/youtubeOAuthController");
 
 router.get(
     "/youtube",
+    requireAuth,
     youtubeOAuthController.connectYouTube
 );
 
@@ -31,6 +33,7 @@ router.get(
 
 router.get(
     "/status",
+    requireAuth,
     youtubeOAuthController.getYouTubeConnectionStatus
 );
 
@@ -41,6 +44,7 @@ router.get(
 
 router.delete(
     "/youtube",
+    requireAuth,
     youtubeOAuthController.disconnectYouTube
 );
 

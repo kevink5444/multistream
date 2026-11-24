@@ -616,76 +616,268 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
   const [resolution, setResolution] = useState("1080p");
   const [fps, setFps] = useState("30fps");
 
-  // Membuka tab baru saat klik pengguna,
-  // untuk menghindari popup blocker.
   const handleSubmit = (event) => {
-  event.preventDefault();
+    event.preventDefault();
 
-  // Membuka tab baru ketika tombol Create Live diklik
-  const studioTab = window.open("", "_blank");
+    // Membuka tab baru saat klik pengguna
+    // untuk menghindari popup blocker.
+    const studioTab = window.open("", "_blank");
 
-  // Menampilkan halaman loading pada tab baru
-  if (studioTab) {
-    studioTab.document.open();
-    studioTab.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Creating YouTube Live</title>
-          <meta charset="UTF-8" />
-          <style>
-            body {
-              margin: 0;
-              min-height: 100vh;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              background: #09090f;
-              color: white;
-              font-family: Arial, sans-serif;
-            }
-            .container {
-              text-align: center;
-            }
-            .spinner {
-              width: 45px;
-              height: 45px;
-              border: 4px solid #292936;
-              border-top-color: #6366f1;
-              border-radius: 50%;
-              animation: spin 0.8s linear infinite;
-              margin: 0 auto 20px;
-            }
-            @keyframes spin {
-              to {
-                transform: rotate(360deg);
+    // Menampilkan halaman loading pada tab baru.
+    if (studioTab) {
+      studioTab.document.open();
+
+      studioTab.document.write(`
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Creating YouTube Live</title>
+
+            <style>
+              * {
+                box-sizing: border-box;
               }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="spinner"></div>
-            <h2>Creating YouTube Live</h2>
-            <p>Please wait while Live Control Room is being prepared.</p>
-          </div>
-        </body>
-      </html>
-    `);
-    studioTab.document.close();
-  }
 
-  onCreate(
-    {
-      title,
-      description,
-      privacyStatus,
-      resolution,
-      fps,
-    },
-    studioTab
+              body {
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #09090f;
+                color: #ffffff;
+                font-family: Arial, sans-serif;
+              }
+
+              .container {
+                text-align: center;
+                padding: 32px;
+              }
+
+              .spinner {
+                width: 48px;
+                height: 48px;
+                border: 4px solid #292936;
+                border-top-color: #6366f1;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+                margin: 0 auto 24px;
+              }
+
+              @keyframes spin {
+                to {
+                  transform: rotate(360deg);
+                }
+              }
+
+              h2 {
+                margin: 0 0 12px;
+                font-size: 24px;
+              }
+
+              p {
+                color: #9ca3af;
+                font-size: 14px;
+              }
+            </style>
+          </head>
+
+          <body>
+            <div class="container">
+              <div class="spinner"></div>
+
+              <h2>Creating YouTube Live</h2>
+
+              <p>
+                Please wait while your Live Control Room is being prepared.
+              </p>
+            </div>
+          </body>
+        </html>
+      `);
+
+      studioTab.document.close();
+    }
+
+    // Kirim konfigurasi ke parent.
+    onCreate(
+      {
+        title,
+        description,
+        privacyStatus,
+        resolution,
+        fps,
+      },
+      studioTab
+    );
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      onClick={() => {
+        if (!creating) onClose();
+      }}
+    >
+      <div
+        className="w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-[#11111a] shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* HEADER */}
+        <div className="flex items-center justify-between border-b border-white/10 p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10">
+              <FaYoutube className="h-5 w-5 text-red-500" />
+            </div>
+
+            <div>
+              <h2 className="text-lg font-semibold text-white">
+                Create YouTube Live
+              </h2>
+
+              <p className="mt-1 text-xs text-zinc-500">
+                Configure your live stream
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={creating}
+            className="rounded-lg p-2 text-zinc-400 transition hover:bg-white/5 hover:text-white disabled:opacity-50"
+            aria-label="Close modal"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* FORM */}
+        <form onSubmit={handleSubmit} className="space-y-5 p-5">
+
+          {/* TITLE */}
+          <div>
+            <label className="mb-2 block text-sm text-zinc-300">
+              Stream Title
+            </label>
+
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter your live stream title"
+              required
+              disabled={creating}
+              className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-500/50 disabled:opacity-50"
+            />
+          </div>
+
+          {/* DESCRIPTION */}
+          <div>
+            <label className="mb-2 block text-sm text-zinc-300">
+              Description
+            </label>
+
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe your live stream..."
+              rows={4}
+              disabled={creating}
+              className="w-full resize-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-500/50 disabled:opacity-50"
+            />
+          </div>
+
+          {/* PRIVACY */}
+          <div>
+            <label className="mb-2 block text-sm text-zinc-300">
+              Privacy
+            </label>
+
+            <select
+              value={privacyStatus}
+              onChange={(e) => setPrivacyStatus(e.target.value)}
+              disabled={creating}
+              className="w-full rounded-xl border border-white/10 bg-[#1c1c26] px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-500/50 disabled:opacity-50"
+            >
+              <option value="public">Public</option>
+              <option value="unlisted">Unlisted</option>
+              <option value="private">Private</option>
+            </select>
+
+            <p className="mt-2 text-xs text-zinc-500">
+              Choose who can watch your live stream.
+            </p>
+          </div>
+
+          {/* VIDEO CONFIGURATION */}
+          <div className="grid grid-cols-2 gap-4">
+
+            {/* RESOLUTION */}
+            <div>
+              <label className="mb-2 block text-sm text-zinc-300">
+                Resolution
+              </label>
+
+              <select
+                value={resolution}
+                onChange={(e) => setResolution(e.target.value)}
+                disabled={creating}
+                className="w-full rounded-xl border border-white/10 bg-[#1c1c26] px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-500/50 disabled:opacity-50"
+              >
+                <option value="720p">720p</option>
+                <option value="1080p">1080p</option>
+                <option value="1440p">1440p</option>
+                <option value="2160p">2160p (4K)</option>
+              </select>
+            </div>
+
+            {/* FPS */}
+            <div>
+              <label className="mb-2 block text-sm text-zinc-300">
+                Frame Rate
+              </label>
+
+              <select
+                value={fps}
+                onChange={(e) => setFps(e.target.value)}
+                disabled={creating}
+                className="w-full rounded-xl border border-white/10 bg-[#1c1c26] px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-500/50 disabled:opacity-50"
+              >
+                <option value="30fps">30 FPS</option>
+                <option value="60fps">60 FPS</option>
+              </select>
+            </div>
+          </div>
+
+          {/* ACTIONS */}
+          <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
+
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={creating}
+              className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-white disabled:opacity-50"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={creating || !title.trim()}
+              className="flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FaYoutube className="h-4 w-4" />
+
+              {creating ? "Creating Live..." : "Create Live"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
-};
 }
 /* =====================================================
    DESTINATIONS PAGE
@@ -768,7 +960,13 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
 
   const fetchYouTubeConnectionStatus = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/oauth/status");
+      const response = await fetch(
+  "http://localhost:5000/api/oauth/status",
+  {
+    credentials: "include",
+  }
+
+);
       const result = await response.json();
 
       if (!response.ok || !result.success) {
@@ -812,9 +1010,13 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
       setYoutubeActionLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:5000/api/oauth/youtube", {
-        method: "DELETE",
-      });
+     const response = await fetch(
+  "http://localhost:5000/api/oauth/youtube",
+  {
+    method: "DELETE",
+    credentials: "include",
+  }
+);
       const result = await response.json();
 
       if (!response.ok || !result.success) {
@@ -876,6 +1078,7 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
       "http://localhost:5000/api/youtube/live/configuration",
       {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
