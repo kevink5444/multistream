@@ -619,92 +619,24 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    // Membuka tab baru saat klik pengguna
-    // untuk menghindari popup blocker.
-    const studioTab = window.open("", "_blank");
+    // Open the loading tab directly from the user interaction
+    // to prevent the browser from blocking the popup.
+    const studioTab = window.open(
+      `${window.location.origin}/?youtube-live-creating=1`,
+      "_blank"
+    );
 
-    // Menampilkan halaman loading pada tab baru.
-    if (studioTab) {
-      studioTab.document.open();
-
-      studioTab.document.write(`
-        <!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>Creating YouTube Live</title>
-
-            <style>
-              * {
-                box-sizing: border-box;
-              }
-
-              body {
-                margin: 0;
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: #09090f;
-                color: #ffffff;
-                font-family: Arial, sans-serif;
-              }
-
-              .container {
-                text-align: center;
-                padding: 32px;
-              }
-
-              .spinner {
-                width: 48px;
-                height: 48px;
-                border: 4px solid #292936;
-                border-top-color: #6366f1;
-                border-radius: 50%;
-                animation: spin 0.8s linear infinite;
-                margin: 0 auto 24px;
-              }
-
-              @keyframes spin {
-                to {
-                  transform: rotate(360deg);
-                }
-              }
-
-              h2 {
-                margin: 0 0 12px;
-                font-size: 24px;
-              }
-
-              p {
-                color: #9ca3af;
-                font-size: 14px;
-              }
-            </style>
-          </head>
-
-          <body>
-            <div class="container">
-              <div class="spinner"></div>
-
-              <h2>Creating YouTube Live</h2>
-
-              <p>
-                Please wait while your Live Control Room is being prepared.
-              </p>
-            </div>
-          </body>
-        </html>
-      `);
-
-      studioTab.document.close();
+    if (!studioTab) {
+      window.alert(
+        "Popup blocked. Please allow popups for MultiStream and try again."
+      );
+      return;
     }
 
-    // Kirim konfigurasi ke parent.
+    // Send the configuration to the parent only once.
     onCreate(
       {
-        title,
+        title: title.trim(),
         description,
         privacyStatus,
         resolution,
@@ -723,7 +655,7 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
     >
       <div
         className="w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-[#11111a] shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
         {/* HEADER */}
         <div className="flex items-center justify-between border-b border-white/10 p-5">
@@ -736,7 +668,6 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
               <h2 className="text-lg font-semibold text-white">
                 Create YouTube Live
               </h2>
-
               <p className="mt-1 text-xs text-zinc-500">
                 Configure your live stream
               </p>
@@ -756,17 +687,15 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
 
         {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-5 p-5">
-
           {/* TITLE */}
           <div>
             <label className="mb-2 block text-sm text-zinc-300">
               Stream Title
             </label>
-
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(event) => setTitle(event.target.value)}
               placeholder="Enter your live stream title"
               required
               disabled={creating}
@@ -779,10 +708,9 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
             <label className="mb-2 block text-sm text-zinc-300">
               Description
             </label>
-
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(event) => setDescription(event.target.value)}
               placeholder="Describe your live stream..."
               rows={4}
               disabled={creating}
@@ -795,10 +723,9 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
             <label className="mb-2 block text-sm text-zinc-300">
               Privacy
             </label>
-
             <select
               value={privacyStatus}
-              onChange={(e) => setPrivacyStatus(e.target.value)}
+              onChange={(event) => setPrivacyStatus(event.target.value)}
               disabled={creating}
               className="w-full rounded-xl border border-white/10 bg-[#1c1c26] px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-500/50 disabled:opacity-50"
             >
@@ -806,7 +733,6 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
               <option value="unlisted">Unlisted</option>
               <option value="private">Private</option>
             </select>
-
             <p className="mt-2 text-xs text-zinc-500">
               Choose who can watch your live stream.
             </p>
@@ -814,16 +740,14 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
 
           {/* VIDEO CONFIGURATION */}
           <div className="grid grid-cols-2 gap-4">
-
             {/* RESOLUTION */}
             <div>
               <label className="mb-2 block text-sm text-zinc-300">
                 Resolution
               </label>
-
               <select
                 value={resolution}
-                onChange={(e) => setResolution(e.target.value)}
+                onChange={(event) => setResolution(event.target.value)}
                 disabled={creating}
                 className="w-full rounded-xl border border-white/10 bg-[#1c1c26] px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-500/50 disabled:opacity-50"
               >
@@ -839,10 +763,9 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
               <label className="mb-2 block text-sm text-zinc-300">
                 Frame Rate
               </label>
-
               <select
                 value={fps}
-                onChange={(e) => setFps(e.target.value)}
+                onChange={(event) => setFps(event.target.value)}
                 disabled={creating}
                 className="w-full rounded-xl border border-white/10 bg-[#1c1c26] px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-500/50 disabled:opacity-50"
               >
@@ -854,7 +777,6 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
 
           {/* ACTIONS */}
           <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
-
             <button
               type="button"
               onClick={onClose}
@@ -870,7 +792,6 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
               className="flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <FaYoutube className="h-4 w-4" />
-
               {creating ? "Creating Live..." : "Create Live"}
             </button>
           </div>
@@ -879,6 +800,7 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
     </div>
   );
 }
+
 /* =====================================================
    DESTINATIONS PAGE
 ===================================================== */
