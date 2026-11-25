@@ -17,6 +17,32 @@ import ResetPassword from "./pages/ResetPassword";
 import { getCurrentUser } from "./services/authService";
 
 // =====================================
+// THEME HELPER
+// =====================================
+
+function applyTheme(theme) {
+  let selectedTheme = theme;
+
+  if (theme === "system") {
+    selectedTheme = window.matchMedia(
+      "(prefers-color-scheme: light)"
+    ).matches
+      ? "light"
+      : "dark";
+  }
+
+  document.documentElement.setAttribute(
+    "data-theme",
+    selectedTheme
+  );
+
+  document.documentElement.style.colorScheme =
+    selectedTheme;
+
+  return selectedTheme;
+}
+
+// =====================================
 // LOADING PAGE
 // =====================================
 
@@ -63,6 +89,7 @@ function YouTubeLiveLoading() {
 function AppRoutes() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [theme, setTheme] = useState("dark");
 
   const location = useLocation();
 
@@ -83,9 +110,11 @@ function AppRoutes() {
     async function checkSession() {
       try {
         const currentUser = await getCurrentUser();
+
         setUser(currentUser);
       } catch (error) {
         console.error("Session check failed:", error);
+
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -94,6 +123,104 @@ function AppRoutes() {
 
     checkSession();
   }, []);
+
+  // =====================================
+  // LOAD APPLICATION THEME
+  // =====================================
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!user) {
+      setTheme("dark");
+      applyTheme("dark");
+      return;
+    }
+
+    async function loadTheme() {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/settings",
+          {
+            credentials: "include",
+          }
+        );
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          const savedTheme =
+            result.data?.theme || "dark";
+
+          setTheme(savedTheme);
+          applyTheme(savedTheme);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load application theme:",
+          error
+        );
+
+        setTheme("dark");
+        applyTheme("dark");
+      }
+    }
+
+    loadTheme();
+  }, [isLoading, user]);
+
+  // =====================================
+  // THEME CHANGE LISTENER
+  // =====================================
+
+  useEffect(() => {
+    const handleThemeChange = (event) => {
+      const newTheme = event.detail;
+
+      setTheme(newTheme);
+      applyTheme(newTheme);
+    };
+
+    window.addEventListener(
+      "multistream-theme-change",
+      handleThemeChange
+    );
+
+    return () => {
+      window.removeEventListener(
+        "multistream-theme-change",
+        handleThemeChange
+      );
+    };
+  }, []);
+
+  // =====================================
+  // SYSTEM THEME LISTENER
+  // =====================================
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(
+      "(prefers-color-scheme: light)"
+    );
+
+    const handleSystemThemeChange = () => {
+      if (theme === "system") {
+        applyTheme("system");
+      }
+    };
+
+    mediaQuery.addEventListener(
+      "change",
+      handleSystemThemeChange
+    );
+
+    return () => {
+      mediaQuery.removeEventListener(
+        "change",
+        handleSystemThemeChange
+      );
+    };
+  }, [theme]);
 
   // =====================================
   // AUTH HANDLERS
@@ -140,7 +267,9 @@ function AppRoutes() {
         element={
           resetToken ? (
             <Navigate
-              to={`/reset-password?token=${encodeURIComponent(resetToken)}`}
+              to={`/reset-password?token=${encodeURIComponent(
+                resetToken
+              )}`}
               replace
             />
           ) : user ? (
@@ -177,7 +306,7 @@ function AppRoutes() {
                 window.location.assign("/forgot-password");
               }}
             />
-            )
+          )
           }
       />
 
@@ -218,7 +347,7 @@ function AppRoutes() {
                 window.location.assign("/login");
               }}
             />
-            )
+          )
           }
       />
 

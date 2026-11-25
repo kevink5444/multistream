@@ -1,8 +1,11 @@
+/* =========================================================
+   MULTISTREAM SETTINGS
+   ========================================================= */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import {
   Settings as SettingsIcon,
-  Monitor,
   Video,
   AudioLines,
   Gauge,
@@ -10,21 +13,29 @@ import {
   RotateCcw,
   Check,
   Info,
+  AlertCircle,
+  LoaderCircle,
 } from "lucide-react";
 
-// ======================================================
-// DEFAULT SETTINGS
-// ======================================================
+/* =========================================================
+   API CONFIGURATION
+   ========================================================= */
+
+const API_BASE_URL = "http://localhost:5000/api";
+const SETTINGS_API_URL = `${API_BASE_URL}/settings`;
+
+/* =========================================================
+   DEFAULT SETTINGS
+   ========================================================= */
 
 const defaultSettings = {
-  // General
   applicationName: "MultiStream",
+
   startup: false,
   minimizeToTray: true,
   notifications: true,
   theme: "dark",
 
-  // Video
   resolution: "1920x1080",
   fps: "60",
   videoEncoder: "H.264",
@@ -32,22 +43,54 @@ const defaultSettings = {
   keyframeInterval: "2",
   preset: "medium",
 
-  // Audio
   audioEncoder: "AAC",
   audioBitrate: "160",
   sampleRate: "48000",
   channels: "Stereo",
 
-  // Performance
   hardwareAcceleration: false,
   lowLatency: false,
   autoReconnect: true,
   reconnectAttempts: "5",
 };
 
-// ======================================================
-// SECTION HEADER
-// ======================================================
+/* =========================================================
+   API HELPER
+   ========================================================= */
+
+const requestSettings = async (url, options = {}) => {
+  const response = await fetch(url, {
+    credentials: "include",
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+    },
+  });
+
+  let result;
+
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error("Invalid response from MultiStream backend.");
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      result?.message || `Request failed (${response.status})`
+    );
+  }
+
+  if (!result.success) {
+    throw new Error(result.message || "Settings request failed.");
+  }
+
+  return result;
+};
+
+/* =========================================================
+   SECTION HEADER
+   ========================================================= */
 
 function SectionHeader({ title, description }) {
   return (
@@ -63,9 +106,9 @@ function SectionHeader({ title, description }) {
   );
 }
 
-// ======================================================
-// SETTINGS CARD
-// ======================================================
+/* =========================================================
+   SETTINGS CARD
+   ========================================================= */
 
 function SettingsCard({ children }) {
   return (
@@ -75,9 +118,9 @@ function SettingsCard({ children }) {
   );
 }
 
-// ======================================================
-// INPUT FIELD
-// ======================================================
+/* =========================================================
+   INPUT FIELD
+   ========================================================= */
 
 function InputField({
   label,
@@ -86,6 +129,8 @@ function InputField({
   onChange,
   type = "text",
   placeholder,
+  min,
+  max,
 }) {
   return (
     <div>
@@ -101,18 +146,20 @@ function InputField({
 
       <input
         type={type}
-        value={value}
+        value={value ?? ""}
         onChange={onChange}
         placeholder={placeholder}
+        min={min}
+        max={max}
         className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-500/50"
       />
     </div>
   );
 }
 
-// ======================================================
-// SELECT FIELD
-// ======================================================
+/* =========================================================
+   SELECT FIELD
+   ========================================================= */
 
 function SelectField({
   label,
@@ -134,7 +181,7 @@ function SelectField({
       )}
 
       <select
-        value={value}
+        value={value ?? ""}
         onChange={onChange}
         className="w-full rounded-xl border border-white/10 bg-[#1a1a22] px-4 py-3 text-sm text-white outline-none transition focus:border-indigo-500/50"
       >
@@ -151,19 +198,19 @@ function SelectField({
   );
 }
 
-// ======================================================
-// TOGGLE
-// ======================================================
+/* =========================================================
+   TOGGLE SETTING
+   ========================================================= */
 
 function ToggleSetting({
   label,
   description,
   checked,
   onChange,
+  disabled = false,
 }) {
   return (
     <div className="flex items-center justify-between gap-4 py-4">
-
       <div className="min-w-0">
         <p className="text-sm font-medium text-white">
           {label}
@@ -178,11 +225,18 @@ function ToggleSetting({
 
       <button
         type="button"
+        role="switch"
+        aria-checked={checked}
+        disabled={disabled}
         onClick={() => onChange(!checked)}
         className={`relative h-6 w-11 shrink-0 rounded-full transition ${
           checked
             ? "bg-indigo-500"
             : "bg-zinc-700"
+        } ${
+          disabled
+            ? "cursor-not-allowed opacity-50"
+            : "cursor-pointer"
         }`}
       >
         <span
@@ -193,25 +247,64 @@ function ToggleSetting({
           }`}
         />
       </button>
-
     </div>
   );
 }
 
-// ======================================================
-// SETTINGS PAGE
-// ======================================================
+/* =========================================================
+   SETTINGS PAGE
+   ========================================================= */
 
 export default function Settings() {
   const [settings, setSettings] = useState(defaultSettings);
 
   const [activeTab, setActiveTab] = useState("general");
 
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   const [saved, setSaved] = useState(false);
 
-  // ====================================================
-  // UPDATE SETTINGS
-  // ====================================================
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  /* =======================================================
+     LOAD SETTINGS FROM BACKEND
+     ======================================================= */
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        setMessage("");
+
+        const result = await requestSettings(
+          SETTINGS_API_URL
+        );
+
+        setSettings({
+          ...defaultSettings,
+          ...result.data,
+        });
+      } catch (err) {
+        console.error("Load Settings Error:", err);
+
+        setError(
+          err.message ||
+            "Failed to load settings from backend."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  /* =======================================================
+     UPDATE SETTINGS
+     ======================================================= */
 
   const updateSetting = (key, value) => {
     setSettings((previous) => ({
@@ -220,47 +313,98 @@ export default function Settings() {
     }));
 
     setSaved(false);
+    setError("");
+    setMessage("");
   };
 
-  // ====================================================
-  // SAVE SETTINGS
-  // ====================================================
+  /* =======================================================
+     SAVE SETTINGS
+     ======================================================= */
 
-  const saveSettings = () => {
-    // Frontend simulation
-    localStorage.setItem(
-      "multistream-settings",
-      JSON.stringify(settings)
-    );
-
-    setSaved(true);
-
-    setTimeout(() => {
+  const saveSettings = async () => {
+    try {
+      setSaving(true);
       setSaved(false);
-    }, 3000);
+      setError("");
+      setMessage("");
+
+      const result = await requestSettings(
+        SETTINGS_API_URL,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(settings),
+        }
+      );
+
+    setSettings({
+  ...defaultSettings,
+  ...result.data,
+});
+
+// Apply theme globally
+window.dispatchEvent(
+  new CustomEvent("multistream-theme-change", {
+    detail: result.data.theme,
+  })
+);
+
+setSaved(true);
+setMessage("Settings saved successfully.");
+
+      setError(
+        err.message ||
+          "Failed to save settings."
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // ====================================================
-  // RESET SETTINGS
-  // ====================================================
+  /* =======================================================
+     RESET SETTINGS
+     ======================================================= */
 
-  const resetSettings = () => {
+  const resetSettings = async () => {
     const confirmed = window.confirm(
       "Reset all settings to their default values?"
     );
 
     if (!confirmed) return;
 
-    setSettings(defaultSettings);
+    try {
+      setSaving(true);
+      setSaved(false);
+      setError("");
+      setMessage("");
 
-    localStorage.removeItem("multistream-settings");
+      const result = await requestSettings(
+        `${SETTINGS_API_URL}/reset`,
+        {
+          method: "POST",
+        }
+      );
 
-    setSaved(false);
+     window.dispatchEvent(
+  new CustomEvent("multistream-theme-change", {
+    detail: result.data.theme,
+  })
+);
+
+      setError(
+        err.message ||
+          "Failed to reset settings."
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // ====================================================
-  // TABS
-  // ====================================================
+  /* =======================================================
+     TABS
+     ======================================================= */
 
   const tabs = [
     {
@@ -285,6 +429,28 @@ export default function Settings() {
     },
   ];
 
+  /* =======================================================
+     LOADING STATE
+     ======================================================= */
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <div className="flex items-center gap-3 text-zinc-400">
+          <LoaderCircle className="h-5 w-5 animate-spin text-indigo-400" />
+
+          <span className="text-sm">
+            Loading settings from backend...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  /* =======================================================
+     RENDER
+     ======================================================= */
+
   return (
     <div className="space-y-6">
 
@@ -293,7 +459,6 @@ export default function Settings() {
       {/* ================================================== */}
 
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-
         <div>
           <h1 className="text-2xl font-bold text-white">
             Settings
@@ -306,42 +471,96 @@ export default function Settings() {
 
         <div className="flex gap-2">
 
+          {/* RESET */}
+
           <button
+            type="button"
             onClick={resetSettings}
-            className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#111118] px-4 py-2.5 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-white"
+            disabled={saving}
+            className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#111118] px-4 py-2.5 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <RotateCcw className="h-4 w-4" />
+            {saving ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              <RotateCcw className="h-4 w-4" />
+            )}
+
             Reset
           </button>
 
+          {/* SAVE */}
+
           <button
+            type="button"
             onClick={saveSettings}
-            className="flex items-center gap-2 rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-600"
+            disabled={saving}
+            className="flex items-center gap-2 rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {saved ? (
+            {saving ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : saved ? (
               <Check className="h-4 w-4" />
             ) : (
               <Save className="h-4 w-4" />
             )}
 
-            {saved ? "Saved" : "Save Changes"}
+            {saving
+              ? "Saving..."
+              : saved
+              ? "Saved"
+              : "Save Changes"}
           </button>
 
         </div>
-
       </div>
+
+      {/* ================================================== */}
+      {/* STATUS MESSAGE */}
+      {/* ================================================== */}
+
+      {error && (
+        <div className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/5 p-4">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+
+          <div>
+            <p className="text-sm font-medium text-red-400">
+              Settings Error
+            </p>
+
+            <p className="mt-1 text-sm text-red-300/80">
+              {error}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {message && !error && (
+        <div className="flex items-start gap-3 rounded-xl border border-green-500/20 bg-green-500/5 p-4">
+          <Check className="mt-0.5 h-5 w-5 shrink-0 text-green-400" />
+
+          <div>
+            <p className="text-sm font-medium text-green-400">
+              Success
+            </p>
+
+            <p className="mt-1 text-sm text-green-300/80">
+              {message}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ================================================== */}
       {/* SETTINGS NAVIGATION */}
       {/* ================================================== */}
 
       <div className="flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-[#111118] p-2">
-
         {tabs.map((tab) => {
           const Icon = tab.icon;
 
           return (
             <button
+              type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition ${
@@ -356,7 +575,6 @@ export default function Settings() {
             </button>
           );
         })}
-
       </div>
 
       {/* ================================================== */}
@@ -435,7 +653,10 @@ export default function Settings() {
                 description="Keep the application running in the system tray when minimized."
                 checked={settings.minimizeToTray}
                 onChange={(value) =>
-                  updateSetting("minimizeToTray", value)
+                  updateSetting(
+                    "minimizeToTray",
+                    value
+                  )
                 }
               />
 
@@ -444,7 +665,10 @@ export default function Settings() {
                 description="Show notifications when streaming events occur."
                 checked={settings.notifications}
                 onChange={(value) =>
-                  updateSetting("notifications", value)
+                  updateSetting(
+                    "notifications",
+                    value
+                  )
                 }
               />
 
@@ -600,6 +824,7 @@ export default function Settings() {
                 label="Bitrate (Kbps)"
                 description="Target video bitrate."
                 type="number"
+                min="100"
                 value={settings.bitrate}
                 onChange={(e) =>
                   updateSetting(
@@ -613,6 +838,7 @@ export default function Settings() {
                 label="Keyframe Interval"
                 description="Keyframe interval in seconds."
                 type="number"
+                min="1"
                 value={settings.keyframeInterval}
                 onChange={(e) =>
                   updateSetting(
@@ -623,7 +849,6 @@ export default function Settings() {
               />
 
             </div>
-
           </SettingsCard>
 
         </div>
@@ -822,6 +1047,7 @@ export default function Settings() {
               label="Maximum Reconnection Attempts"
               description="Maximum number of reconnection attempts."
               type="number"
+              min="0"
               value={settings.reconnectAttempts}
               onChange={(e) =>
                 updateSetting(
@@ -837,7 +1063,7 @@ export default function Settings() {
       )}
 
       {/* ================================================== */}
-      {/* INFORMATION */}
+      {/* BACKEND INFORMATION */}
       {/* ================================================== */}
 
       <div className="flex items-start gap-3 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-4">
@@ -846,14 +1072,12 @@ export default function Settings() {
 
         <div>
           <p className="text-sm font-medium text-white">
-            Settings Preview
+            Backend Storage
           </p>
 
           <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-            These settings currently operate in frontend simulation mode.
-            Saving preferences stores them locally in your browser.
-            Actual encoder and streaming configuration will be integrated
-            with the backend in a later development stage.
+            Settings are retrieved from and saved to the MultiStream backend.
+            Changes will remain stored after refreshing the application.
           </p>
         </div>
 

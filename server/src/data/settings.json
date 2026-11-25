@@ -1,0 +1,21 @@
+{
+  "applicationName": "MultiStream",
+  "startup": false,
+  "minimizeToTray": true,
+  "notifications": true,
+  "theme": "light",
+  "resolution": "1920x1080",
+  "fps": "60",
+  "videoEncoder": "H.264",
+  "bitrate": "6000",
+  "keyframeInterval": "2",
+  "preset": "medium",
+  "audioEncoder": "AAC",
+  "audioBitrate": "160",
+  "sampleRate": "48000",
+  "channels": "Stereo",
+  "hardwareAcceleration": false,
+  "lowLatency": false,
+  "autoReconnect": true,
+  "reconnectAttempts": "5"
+}

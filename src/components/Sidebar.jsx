@@ -267,7 +267,7 @@ function Sidebar({
             <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
               <ShieldCheck className="h-4 w-4 text-emerald-400" />
 
-              <span className="absolute right-0 top-0 h-2 w-2 rounded-full border-2 border-[#0B0D12] bg-emerald-400" />
+              <span className="absolute right-0 top-0 h-2 w-2 rounded-full border-2 border-[var(--sidebar-bg)] bg-emerald-400" />
             </div>
 
             {!isCollapsed && (

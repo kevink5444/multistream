@@ -5,7 +5,7 @@
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
-
+const settingsRoutes = require("./routes/settingsRoutes");
 const authRoutes = require("./routes/authRoutes");
 const destinationRoutes = require("./routes/destinationRoutes");
 const youtubeOAuthRoutes = require("./routes/youtubeOAuthRoutes");
@@ -96,6 +96,11 @@ app.use("/api/auth", authRoutes);
    ========================================================= */
 
 app.use("/api/destinations", destinationRoutes);
+/* =========================================================
+   SETTINGS ROUTES
+   ========================================================= */
+
+app.use("/api/settings", settingsRoutes);
 
 /* =========================================================
    YOUTUBE OAUTH ROUTES
