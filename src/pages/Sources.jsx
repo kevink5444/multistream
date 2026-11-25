@@ -1,9 +1,8 @@
-import { useState } from "react";
+
+import { useEffect, useRef, useState } from "react";
 
 import {
   Video,
-  Monitor,
-  AppWindow,
   FileVideo,
   Mic,
   Radio,
@@ -16,10 +15,13 @@ import {
   X,
   Activity,
   Search,
+  Play,
+  Square,
+  RefreshCw,
 } from "lucide-react";
 
 /* =========================================================
-   SOURCE CONFIGURATION
+   SOURCE TYPES
 ========================================================= */
 
 const sourceTypes = {
@@ -28,20 +30,6 @@ const sourceTypes = {
     icon: Video,
     color: "text-blue-400",
     background: "bg-blue-500/10",
-  },
-
-  screen: {
-    label: "Screen Capture",
-    icon: Monitor,
-    color: "text-violet-400",
-    background: "bg-violet-500/10",
-  },
-
-  window: {
-    label: "Window Capture",
-    icon: AppWindow,
-    color: "text-cyan-400",
-    background: "bg-cyan-500/10",
   },
 
   video: {
@@ -67,74 +55,30 @@ const sourceTypes = {
 };
 
 /* =========================================================
-   INITIAL DATA
-========================================================= */
-
-const initialSources = [
-  {
-    id: 1,
-    name: "Main Camera",
-    type: "camera",
-    device: "USB Camera",
-    resolution: "1920 × 1080",
-    fps: "30 FPS",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "Desktop Capture",
-    type: "screen",
-    device: "Display 1",
-    resolution: "1920 × 1080",
-    fps: "60 FPS",
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "Game Capture",
-    type: "window",
-    device: "Game Window",
-    resolution: "1920 × 1080",
-    fps: "60 FPS",
-    status: "inactive",
-  },
-  {
-    id: 4,
-    name: "Background Music",
-    type: "audio",
-    device: "Default Audio Device",
-    resolution: "-",
-    fps: "-",
-    status: "active",
-  },
-];
-
-/* =========================================================
-   SOURCE STATUS BADGE
+   STATUS BADGE
 ========================================================= */
 
 function SourceStatusBadge({ status }) {
-  const isActive = status === "active";
+  const active = status === "active";
 
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${
-        isActive
+        active
           ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
           : "border-slate-500/20 bg-slate-500/10 text-slate-400"
       }`}
     >
-      {isActive ? (
+      {active ? (
         <CheckCircle2 size={13} />
-      ) : (
-        <AlertCircle size={13} />
-      )}
+    ) : (
+      <AlertCircle size={13} />
+    )}
 
-      {isActive ? "Active" : "Inactive"}
-    </span>
+    {active ? "Active" : "Inactive"}
+  </span>
   );
 }
-
 /* =========================================================
    SOURCE CARD
 ========================================================= */
@@ -146,13 +90,11 @@ function SourceCard({
   onDelete,
 }) {
   const config = sourceTypes[source.type];
-
-  const SourceIcon = config.icon;
+  const Icon = config.icon;
 
   return (
     <div className="group rounded-xl border border-white/5 bg-[#15151e] p-4 transition hover:border-white/10 hover:bg-[#191923]">
 
-      {/* Header */}
       <div className="flex items-start justify-between gap-3">
 
         <div className="flex items-center gap-3">
@@ -160,10 +102,7 @@ function SourceCard({
           <div
             className={`flex h-11 w-11 items-center justify-center rounded-xl ${config.background}`}
           >
-            <SourceIcon
-              size={21}
-              className={config.color}
-            />
+            <Icon size={21} className={config.color} />
           </div>
 
           <div>
@@ -189,31 +128,26 @@ function SourceCard({
 
       </div>
 
-      {/* Status */}
       <div className="mt-4 flex items-center justify-between">
-
         <SourceStatusBadge status={source.status} />
 
         {source.status === "active" && (
           <span className="flex items-center gap-1.5 text-xs text-emerald-400">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-
-            Active
+            Running
           </span>
         )}
-
       </div>
 
-      {/* Information */}
       <div className="mt-4 space-y-3 border-t border-white/5 pt-4">
 
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs text-slate-500">
-            Device
+            Input
           </span>
 
           <span className="truncate text-xs font-medium text-slate-300">
-            {source.device}
+            {source.device || "Not configured"}
           </span>
         </div>
 
@@ -223,7 +157,7 @@ function SourceCard({
           </span>
 
           <span className="text-xs font-medium text-slate-300">
-            {source.resolution}
+            {source.resolution || "-"}
           </span>
         </div>
 
@@ -233,13 +167,12 @@ function SourceCard({
           </span>
 
           <span className="text-xs font-medium text-slate-300">
-            {source.fps}
+            {source.fps || "-"}
           </span>
         </div>
 
       </div>
 
-      {/* Actions */}
       <div className="mt-4 flex gap-2">
 
         <button
@@ -279,10 +212,7 @@ function SourceCard({
 
 function AddSourceModal({ onClose, onAdd }) {
   const [sourceType, setSourceType] = useState("camera");
-
   const [sourceName, setSourceName] = useState("");
-
-  const [deviceName, setDeviceName] = useState("");
 
   const config = sourceTypes[sourceType];
 
@@ -292,23 +222,17 @@ function AddSourceModal({ onClose, onAdd }) {
     const newSource = {
       id: Date.now(),
       name:
-        sourceName ||
+        sourceName.trim() ||
         `${config.label} ${Date.now().toString().slice(-4)}`,
       type: sourceType,
-      device: deviceName || "Default Device",
-      resolution:
-        sourceType === "audio"
-          ? "-"
-          : "1920 × 1080",
-      fps:
-        sourceType === "audio"
-          ? "-"
-          : "30 FPS",
+      device: "",
+      resolution: "-",
+      fps: "-",
       status: "inactive",
+      settings: {},
     };
 
     onAdd(newSource);
-
     onClose();
   };
 
@@ -317,7 +241,6 @@ function AddSourceModal({ onClose, onAdd }) {
 
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#15151e] shadow-2xl">
 
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-white/5 p-5">
 
           <div>
@@ -340,13 +263,8 @@ function AddSourceModal({ onClose, onAdd }) {
 
         </div>
 
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 p-5"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4 p-5">
 
-          {/* Source Type */}
           <div>
             <label className="mb-2 block text-xs font-medium text-slate-400">
               Source Type
@@ -354,21 +272,16 @@ function AddSourceModal({ onClose, onAdd }) {
 
             <select
               value={sourceType}
-              onChange={(event) =>
-                setSourceType(event.target.value)
-              }
+              onChange={(event) => setSourceType(event.target.value)}
               className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none focus:border-violet-500/50"
             >
               <option value="camera">Camera</option>
-              <option value="screen">Screen Capture</option>
-              <option value="window">Window Capture</option>
               <option value="video">Video File</option>
               <option value="audio">Audio Input</option>
               <option value="rtmp">RTMP Input</option>
             </select>
           </div>
 
-          {/* Name */}
           <div>
             <label className="mb-2 block text-xs font-medium text-slate-400">
               Source Name
@@ -377,53 +290,19 @@ function AddSourceModal({ onClose, onAdd }) {
             <input
               type="text"
               value={sourceName}
-              onChange={(event) =>
-                setSourceName(event.target.value)
-              }
+              onChange={(event) => setSourceName(event.target.value)}
               placeholder="Enter source name"
               className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
             />
           </div>
 
-          {/* Device */}
-          <div>
-            <label className="mb-2 block text-xs font-medium text-slate-400">
-              Device / Input
-            </label>
-
-            <input
-              type="text"
-              value={deviceName}
-              onChange={(event) =>
-                setDeviceName(event.target.value)
-              }
-              placeholder={
-                sourceType === "camera"
-                  ? "USB Camera"
-                  : sourceType === "screen"
-                    ? "Display 1"
-                    : sourceType === "window"
-                      ? "Application Window"
-                      : sourceType === "video"
-                        ? "Video File"
-                        : sourceType === "audio"
-                          ? "Audio Device"
-                          : "RTMP URL"
-              }
-              className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
-            />
-          </div>
-
-          {/* Notice */}
           <div className="rounded-lg border border-violet-500/10 bg-violet-500/5 p-3">
             <p className="text-xs leading-relaxed text-slate-400">
-              Source creation currently uses frontend simulation.
-              Device detection and actual video capture will be
-              connected to the streaming engine later.
+              Configure the input device, file, or RTMP connection
+              after creating this source.
             </p>
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-2 pt-2">
 
             <button
@@ -439,7 +318,6 @@ function AddSourceModal({ onClose, onAdd }) {
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-violet-500"
             >
               <Plus size={14} />
-
               Add Source
             </button>
 
@@ -457,30 +335,201 @@ function AddSourceModal({ onClose, onAdd }) {
    SOURCE SETTINGS MODAL
 ========================================================= */
 
-function SourceSettingsModal({ source, onClose }) {
-  if (!source) return null;
+function SourceSettingsModal({
+  source,
+  onClose,
+  onSave,
+  onStart,
+  onStop,
+}) {
+  const [devices, setDevices] = useState([]);
+  const [deviceId, setDeviceId] = useState(
+    source.settings?.deviceId || ""
+  );
+
+  const [file, setFile] = useState(source.settings?.file || null);
+  const [rtmpUrl, setRtmpUrl] = useState(
+    source.settings?.rtmpUrl || ""
+  );
+
+  const [error, setError] = useState("");
+  const [loadingDevices, setLoadingDevices] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+
+  const videoRef = useRef(null);
+  const audioRef = useRef(null);
 
   const config = sourceTypes[source.type];
+  const Icon = config.icon;
 
-  const SourceIcon = config.icon;
+  useEffect(() => {
+    if (
+      source.type === "camera" ||
+      source.type === "audio"
+    ) {
+      loadDevices();
+    }
+  }, [source.type]);
+
+  async function loadDevices() {
+    setLoadingDevices(true);
+    setError("");
+
+    try {
+      if (!navigator.mediaDevices?.enumerateDevices) {
+        throw new Error(
+          "Device detection is not supported by this browser."
+        );
+      }
+
+      const availableDevices =
+        await navigator.mediaDevices.enumerateDevices();
+
+      const filteredDevices = availableDevices.filter((device) => {
+        if (source.type === "camera") {
+          return device.kind === "videoinput";
+        }
+
+        return device.kind === "audioinput";
+      });
+
+      setDevices(filteredDevices);
+
+      if (!deviceId && filteredDevices.length > 0) {
+        setDeviceId(filteredDevices[0].deviceId);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingDevices(false);
+    }
+  }
+
+  function handleSave() {
+  setError("");
+  setSaveMessage("");
+
+  onSave(source.id, {
+    deviceId,
+    file,
+    rtmpUrl,
+    device:
+      source.type === "camera" || source.type === "audio"
+        ? devices.find((device) => device.deviceId === deviceId)?.label ||
+          "Selected device"
+        : source.type === "video"
+          ? file?.name || "No video selected"
+          : rtmpUrl || "RTMP Input",
+  });
+
+  setSaveMessage("Settings saved successfully.");
+}
+
+  async function handlePreview() {
+    setError("");
+
+    try {
+      if (source.type === "camera") {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            deviceId: deviceId
+              ? { exact: deviceId }
+              : undefined,
+          },
+          audio: false,
+        });
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+
+        onStart(source.id, stream);
+      }
+
+      if (source.type === "audio") {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            deviceId: deviceId
+              ? { exact: deviceId }
+              : undefined,
+          },
+          video: false,
+        });
+
+        if (audioRef.current) {
+          audioRef.current.srcObject = stream;
+        }
+
+        onStart(source.id, stream);
+      }
+
+      if (source.type === "video") {
+        if (!file) {
+          throw new Error("Please select a video file first.");
+        }
+
+        if (videoRef.current) {
+          videoRef.current.src = URL.createObjectURL(file);
+          await videoRef.current.play();
+        }
+
+        onStart(source.id, null);
+      }
+
+      if (source.type === "rtmp") {
+        if (!rtmpUrl.trim()) {
+          throw new Error("Please enter an RTMP URL.");
+        }
+
+        handleSave();
+
+        setError(
+          "RTMP configuration saved. RTMP ingestion is not yet connected to the media engine."
+        );
+      }
+    } catch (err) {
+      setError(err.message || "Unable to start source.");
+    }
+  }
+
+  function handleStopPreview() {
+    if (videoRef.current) {
+      if (videoRef.current.srcObject) {
+        videoRef.current.srcObject
+          .getTracks()
+          .forEach((track) => track.stop());
+
+        videoRef.current.srcObject = null;
+      }
+
+      videoRef.current.pause();
+      videoRef.current.removeAttribute("src");
+      videoRef.current.load();
+    }
+
+    if (audioRef.current?.srcObject) {
+      audioRef.current.srcObject
+        .getTracks()
+        .forEach((track) => track.stop());
+
+      audioRef.current.srcObject = null;
+    }
+
+    onStop(source.id);
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
 
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#15151e] shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/10 bg-[#15151e] shadow-2xl">
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/5 p-5">
 
           <div className="flex items-center gap-3">
 
-            <div
-              className={`flex h-10 w-10 items-center justify-center rounded-xl ${config.background}`}
-            >
-              <SourceIcon
-                size={20}
-                className={config.color}
-              />
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${config.background}`}>
+              <Icon size={20} className={config.color} />
             </div>
 
             <div>
@@ -505,9 +554,9 @@ function SourceSettingsModal({ source, onClose }) {
 
         </div>
 
-        {/* Content */}
-        <div className="space-y-4 p-5">
+        <div className="space-y-5 p-5">
 
+          {/* Status */}
           <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] p-3">
             <span className="text-xs text-slate-400">
               Source Status
@@ -516,65 +565,206 @@ function SourceSettingsModal({ source, onClose }) {
             <SourceStatusBadge status={source.status} />
           </div>
 
-          <div>
+          {/* Camera */}
+          {source.type === "camera" && (
+            <>
+              <div>
+                <label className="mb-2 block text-xs font-medium text-slate-400">
+                  Camera Device
+                </label>
+
+                <select
+                  value={deviceId}
+                  onChange={(event) => setDeviceId(event.target.value)}
+                  className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none focus:border-violet-500/50"
+                >
+                  {devices.map((device, index) => (
+                    <option
+                      key={device.deviceId}
+                      value={device.deviceId}
+                    >
+                      {device.label || `Camera ${index + 1}`}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={loadDevices}
+                  className="mt-2 flex items-center gap-2 text-xs text-violet-400 hover:text-violet-300"
+                >
+                  <RefreshCw size={13} />
+                  Refresh Devices
+                </button>
+              </div>
+
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className="aspect-video w-full rounded-lg bg-black object-contain"
+              />
+            </>
+          )}
+
+          {/* Video */}
+          {source.type === "video" && (
+            <>
+              <div>
+                <label className="mb-2 block text-xs font-medium text-slate-400">
+                  Video File
+                </label>
+
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(event) =>
+                    setFile(event.target.files?.[0] || null)
+                  }
+                  className="w-full rounded-lg border border-white/10 bg-[#1c1c27] p-2 text-xs text-slate-300 file:mr-3 file:rounded-md file:border-0 file:bg-violet-600 file:px-3 file:py-2 file:text-xs file:text-white"
+                />
+
+                {file && (
+                  <p className="mt-2 truncate text-xs text-emerald-400">
+                    Selected: {file.name}
+                  </p>
+                )}
+              </div>
+
+              <video
+                ref={videoRef}
+                controls
+                playsInline
+                className="aspect-video w-full rounded-lg bg-black object-contain"
+              />
+            </>
+          )}
+
+          {/* Audio */}
+          {source.type === "audio" && (
+            <>
+              <div>
+                <label className="mb-2 block text-xs font-medium text-slate-400">
+                  Microphone / Audio Device
+                </label>
+
+                <select
+                  value={deviceId}
+                  onChange={(event) => setDeviceId(event.target.value)}
+                  className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none focus:border-violet-500/50"
+                >
+                  {devices.map((device, index) => (
+                    <option
+                      key={device.deviceId}
+                      value={device.deviceId}
+                    >
+                      {device.label || `Audio Device ${index + 1}`}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={loadDevices}
+                  className="mt-2 flex items-center gap-2 text-xs text-violet-400 hover:text-violet-300"
+                >
+                  <RefreshCw size={13} />
+                  Refresh Devices
+                </button>
+              </div>
+
+              <audio ref={audioRef} autoPlay controls className="w-full" />
+
+              <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
+                <p className="text-xs text-slate-400">
+                  Audio capture is available for browser preview.
+                  Streaming-engine integration will be added separately.
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* RTMP */}
+          {source.type === "rtmp" && (
+            <>
+              <div>
+                <label className="mb-2 block text-xs font-medium text-slate-400">
+                  RTMP Input URL
+                </label>
+
+                <input
+                  type="text"
+                  value={rtmpUrl}
+                  onChange={(event) => setRtmpUrl(event.target.value)}
+                  placeholder="rtmp://localhost:1935/live/stream"
+                  className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
+                />
+              </div>
+
+              <div className="rounded-lg border border-rose-500/10 bg-rose-500/5 p-3">
+                <p className="text-xs leading-relaxed text-slate-400">
+                  The RTMP server currently accepts incoming streams
+                  through the backend. This field stores the input
+                  configuration, but automatic stream detection and
+                  media preview have not been connected yet.
+                </p>
+              </div>
+            </>
+          )}
+
+          {loadingDevices && (
             <p className="text-xs text-slate-500">
-              Source Type
+              Detecting devices...
             </p>
+          )}
 
-            <p className="mt-1 text-sm text-white">
-              {config.label}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-slate-500">
-              Device
-            </p>
-
-            <p className="mt-1 text-sm text-white">
-              {source.device}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-
-            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
-              <p className="text-xs text-slate-500">
-                Resolution
-              </p>
-
-              <p className="mt-1 text-sm font-medium text-white">
-                {source.resolution}
+          {error && (
+            <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 p-3">
+              <p className="text-xs leading-relaxed text-amber-400">
+                {error}
               </p>
             </div>
+          )}
+          {saveMessage && (
+            <div className="rounded-lg border border-emerald-500/10 bg-emerald-500/5 p-3">
+               <p className="text-xs text-emerald-400">
+                 ✓ {saveMessage}
+               </p>
+              </div>
+          )}
+          {/* Actions */}
+          <div className="flex gap-2">
 
-            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
-              <p className="text-xs text-slate-500">
-                Frame Rate
-              </p>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="flex-1 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-xs font-medium text-slate-300 transition hover:bg-white/[0.07]"
+            >
+              Save Settings
+            </button>
 
-              <p className="mt-1 text-sm font-medium text-white">
-                {source.fps}
-              </p>
-            </div>
+            {source.status === "active" ? (
+              <button
+                type="button"
+                onClick={handleStopPreview}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-red-500"
+              >
+                <Square size={14} />
+                Stop
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handlePreview}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-violet-500"
+              >
+                <Play size={14} />
+                Start Preview
+              </button>
+            )}
 
           </div>
-
-          <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 p-3">
-            <p className="text-xs leading-relaxed text-amber-400/80">
-              Device configuration and video capture settings
-              will be connected to the MultiStream engine
-              in a future implementation.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full rounded-lg bg-violet-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-violet-500"
-          >
-            Close Settings
-          </button>
 
         </div>
 
@@ -585,112 +775,312 @@ function SourceSettingsModal({ source, onClose }) {
 }
 
 /* =========================================================
-   SOURCES PAGE
+   MAIN SOURCES COMPONENT
 ========================================================= */
 
 function Sources() {
-  const [sources, setSources] = useState(initialSources);
+const [sources, setSources] = useState(() => {
+  try {
+    const savedSources = localStorage.getItem("multistream_sources");
 
-  const [addModalOpen, setAddModalOpen] = useState(false);
+    if (!savedSources) return [];
 
-  const [selectedSource, setSelectedSource] = useState(null);
+    return JSON.parse(savedSources).map((source) => ({
+      ...source,
 
+      wasActive:
+        source.wasActive ??
+        source.status === "active",
+
+      status: "inactive",
+    }));
+  } catch (error) {
+    console.error("Failed to load sources:", error);
+    return [];
+  }
+});
   const [searchQuery, setSearchQuery] = useState("");
 
-  /* =========================================================
-     SUMMARY
-  ========================================================= */
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [selectedSource, setSelectedSource] = useState(null);
 
+  const streamsRef = useRef({});
+  const autoReconnectAttemptedRef = useRef(false);
   const activeSources = sources.filter(
     (source) => source.status === "active"
   );
 
   const inactiveSources = sources.filter(
-    (source) => source.status === "inactive"
+    (source) => source.status !== "active"
   );
 
-  /* =========================================================
-     FILTER
-  ========================================================= */
-
   const filteredSources = sources.filter((source) =>
-    source.name
+    `${source.name} ${source.type} ${source.device}`
       .toLowerCase()
       .includes(searchQuery.toLowerCase())
   );
 
-  /* =========================================================
+  /* =====================================================
      ADD SOURCE
-  ========================================================= */
+  ===================================================== */
 
-  const handleAddSource = (newSource) => {
+  function handleAddSource(newSource) {
     setSources((previous) => [
       ...previous,
       newSource,
     ]);
-  };
+  }
 
-  /* =========================================================
-     TOGGLE SOURCE
-  ========================================================= */
+  /* =====================================================
+     SAVE SETTINGS
+  ===================================================== */
 
-  const handleToggleSource = (sourceId) => {
+  function handleSaveSettings(sourceId, settings) {
     setSources((previous) =>
       previous.map((source) =>
         source.id === sourceId
           ? {
               ...source,
-              status:
-                source.status === "active"
-                  ? "inactive"
-                  : "active",
+              settings,
+              device: settings.device,
             }
           : source
       )
     );
-  };
 
-  /* =========================================================
-     DELETE SOURCE
-  ========================================================= */
-
-  const handleDeleteSource = (sourceId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to remove this source?"
+    setSelectedSource((previous) =>
+      previous
+        ? {
+            ...previous,
+            settings,
+            device: settings.device,
+          }
+        : null
     );
+  }
 
-    if (!confirmed) return;
+  /* =====================================================
+     START SOURCE
+  ===================================================== */
+
+  function handleStartSource(sourceId, stream) {
+    if (stream) {
+      streamsRef.current[sourceId] = stream;
+    }
 
     setSources((previous) =>
-      previous.filter(
-        (source) => source.id !== sourceId
+      previous.map((source) =>
+        source.id === sourceId
+          ? {
+              ...source,
+              status: "active",
+              wasActive: true,
+            }
+          : source
       )
     );
-  };
 
-  /* =========================================================
-     PAGE
-  ========================================================= */
+    setSelectedSource((previous) =>
+      previous
+        ? {
+            ...previous,
+            status: "active",
+            wasActive: true,
+          }
+        : null
+    );
+  }
+  /* =====================================================
+   AUTO RECONNECT SOURCES
+===================================================== */
+
+async function handleAutoReconnect(source) {
+  try {
+    if (
+      source.type !== "camera" &&
+      source.type !== "audio"
+    ) {
+      return;
+    }
+
+    const deviceId = source.settings?.deviceId;
+
+    let stream;
+
+    if (source.type === "camera") {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          deviceId: deviceId
+            ? { exact: deviceId }
+            : undefined,
+        },
+        audio: false,
+      });
+    }
+
+    if (source.type === "audio") {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: deviceId
+            ? { exact: deviceId }
+            : undefined,
+        },
+        video: false,
+      });
+    }
+
+    handleStartSource(source.id, stream);
+
+  } catch (error) {
+    console.error(
+      `Auto reconnect failed for ${source.name}:`,
+      error
+    );
+  }
+}
+  /* =====================================================
+     STOP SOURCE
+  ===================================================== */
+
+  function handleStopSource(sourceId) {
+    const stream = streamsRef.current[sourceId];
+
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      delete streamsRef.current[sourceId];
+    }
+
+    setSources((previous) =>
+      previous.map((source) =>
+        source.id === sourceId
+          ? {
+              ...source,
+              status: "inactive",
+              wasActive: false,
+            }
+          : source
+      )
+    );
+
+    setSelectedSource((previous) =>
+      previous
+        ? {
+            ...previous,
+            status: "inactive",
+            wasActive: false,
+          }
+        : null
+    );
+  }
+
+  /* =====================================================
+     TOGGLE SOURCE
+  ===================================================== */
+
+  function handleToggleSource(sourceId) {
+    const source = sources.find(
+      (item) => item.id === sourceId
+    );
+
+    if (!source) return;
+
+    if (source.status === "active") {
+      handleStopSource(sourceId);
+      return;
+    }
+
+    setSelectedSource(source);
+  }
+
+  /* =====================================================
+     DELETE SOURCE
+  ===================================================== */
+
+  function handleDeleteSource(sourceId) {
+    handleStopSource(sourceId);
+
+    setSources((previous) =>
+      previous.filter((source) => source.id !== sourceId)
+    );
+
+    if (selectedSource?.id === sourceId) {
+      setSelectedSource(null);
+    }
+  }
+
+/* =====================================================
+   SAVE SOURCES TO LOCAL STORAGE
+===================================================== */
+
+useEffect(() => {
+  try {
+    const sourcesToSave = sources.map((source) => ({
+      ...source,
+
+      wasActive:
+        source.status === "active"
+          ? true
+          : source.wasActive ?? false,
+
+      status: source.status,
+
+      settings: {
+        ...source.settings,
+        file: null,
+      },
+    }));
+
+    localStorage.setItem(
+      "multistream_sources",
+      JSON.stringify(sourcesToSave)
+    );
+  } catch (error) {
+    console.error("Failed to save sources:", error);
+  }
+}, [sources]);
+
+
+/* =====================================================
+   AUTO RECONNECT SOURCES
+===================================================== */
+
+useEffect(() => {
+  if (autoReconnectAttemptedRef.current) {
+    return;
+  }
+
+  autoReconnectAttemptedRef.current = true;
+
+  const reconnectableSources = sources.filter(
+    (source) =>
+      source.wasActive &&
+      (source.type === "camera" || source.type === "audio")
+  );
+
+  async function reconnectSources() {
+    for (const source of reconnectableSources) {
+      await handleAutoReconnect(source);
+    }
+  }
+
+  reconnectSources();
+}, []);
+ 
+
+  /* =====================================================
+     UI
+  ===================================================== */
 
   return (
     <div className="space-y-6">
 
-      {/* =====================================================
-         PAGE HEADER
-      ===================================================== */}
-
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold text-white">
-              Stream Sources
-            </h1>
-
-            <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2 py-0.5 text-xs text-violet-400">
-              INPUTS
-            </span>
-          </div>
+          <h1 className="text-xl font-semibold text-white">
+            Sources
+          </h1>
 
           <p className="mt-2 text-sm text-slate-500">
             Manage video and audio inputs for your streaming setup.
@@ -703,25 +1093,18 @@ function Sources() {
           className="flex items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500"
         >
           <Plus size={16} />
-
           Add Source
         </button>
 
       </div>
 
-      {/* =====================================================
-         STATUS BANNER
-      ===================================================== */}
-
+      {/* Status Banner */}
       <div className="flex flex-col gap-3 rounded-xl border border-white/5 bg-[#12151c] p-4 sm:flex-row sm:items-center sm:justify-between">
 
         <div className="flex items-center gap-3">
 
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10">
-            <Activity
-              size={19}
-              className="text-violet-400"
-            />
+            <Activity size={19} className="text-violet-400" />
           </div>
 
           <div>
@@ -730,37 +1113,29 @@ function Sources() {
             </h3>
 
             <p className="mt-1 text-xs text-slate-500">
-              Configure the inputs that will be used by your streaming engine.
+              Configure camera, video, audio, and RTMP inputs.
             </p>
           </div>
 
         </div>
 
-        <span className="rounded-lg border border-amber-500/10 bg-amber-500/5 px-3 py-1.5 text-xs text-amber-400">
-          Frontend Simulation
+        <span className="rounded-lg border border-blue-500/10 bg-blue-500/5 px-3 py-1.5 text-xs text-blue-400">
+          Browser Input Manager
         </span>
 
       </div>
 
-      {/* =====================================================
-         STATISTICS
-      ===================================================== */}
-
+      {/* Statistics */}
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
 
-        {/* Total */}
         <div className="rounded-xl border border-white/5 bg-[#12121a] p-4">
-
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500">
               Total Sources
             </span>
 
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/10">
-              <Video
-                size={17}
-                className="text-violet-400"
-              />
+              <Video size={17} className="text-violet-400" />
             </div>
           </div>
 
@@ -771,22 +1146,16 @@ function Sources() {
           <p className="mt-1 text-xs text-slate-500">
             Configured inputs
           </p>
-
         </div>
 
-        {/* Active */}
         <div className="rounded-xl border border-white/5 bg-[#12121a] p-4">
-
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500">
               Active Sources
             </span>
 
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
-              <CheckCircle2
-                size={17}
-                className="text-emerald-400"
-              />
+              <CheckCircle2 size={17} className="text-emerald-400" />
             </div>
           </div>
 
@@ -797,22 +1166,16 @@ function Sources() {
           <p className="mt-1 text-xs text-slate-500">
             Currently enabled
           </p>
-
         </div>
 
-        {/* Inactive */}
         <div className="rounded-xl border border-white/5 bg-[#12121a] p-4">
-
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500">
               Inactive Sources
             </span>
 
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-500/10">
-              <Power
-                size={17}
-                className="text-slate-400"
-              />
+              <Power size={17} className="text-slate-400" />
             </div>
           </div>
 
@@ -823,43 +1186,31 @@ function Sources() {
           <p className="mt-1 text-xs text-slate-500">
             Disabled inputs
           </p>
-
         </div>
 
-        {/* Types */}
         <div className="rounded-xl border border-white/5 bg-[#12121a] p-4">
-
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500">
               Source Types
             </span>
 
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10">
-              <Radio
-                size={17}
-                className="text-blue-400"
-              />
+              <Radio size={17} className="text-blue-400" />
             </div>
           </div>
 
           <p className="mt-3 text-2xl font-semibold text-white">
-            {new Set(
-              sources.map((source) => source.type)
-            ).size}
+            {new Set(sources.map((source) => source.type)).size}
           </p>
 
           <p className="mt-1 text-xs text-slate-500">
             Different input types
           </p>
-
         </div>
 
       </div>
 
-      {/* =====================================================
-         SOURCE TYPE QUICK ACCESS
-      ===================================================== */}
-
+      {/* Available Source Types */}
       <div className="rounded-2xl border border-white/5 bg-[#111118] p-5">
 
         <div className="mb-4">
@@ -872,49 +1223,36 @@ function Sources() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
 
-          {Object.entries(sourceTypes).map(
-            ([type, config]) => {
-              const Icon = config.icon;
+          {Object.entries(sourceTypes).map(([type, config]) => {
+            const Icon = config.icon;
 
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => {
-                    setAddModalOpen(true);
-                  }}
-                  className="flex flex-col items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-4 text-center transition hover:border-violet-500/20 hover:bg-violet-500/5"
-                >
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${config.background}`}
-                  >
-                    <Icon
-                      size={20}
-                      className={config.color}
-                    />
-                  </div>
+            return (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setAddModalOpen(true)}
+                className="flex flex-col items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-4 text-center transition hover:border-violet-500/20 hover:bg-violet-500/5"
+              >
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${config.background}`}>
+                  <Icon size={20} className={config.color} />
+                </div>
 
-                  <span className="text-xs font-medium text-slate-300">
-                    {config.label}
-                  </span>
-                </button>
-              );
-            }
-          )}
+                <span className="text-xs font-medium text-slate-300">
+                  {config.label}
+                </span>
+              </button>
+            );
+          })}
 
         </div>
 
       </div>
 
-      {/* =====================================================
-         SOURCE LIST
-      ===================================================== */}
-
+      {/* Source List */}
       <div className="rounded-2xl border border-white/5 bg-[#111118]">
 
-        {/* Header */}
         <div className="flex flex-col gap-4 border-b border-white/5 p-5 sm:flex-row sm:items-center sm:justify-between">
 
           <div>
@@ -927,7 +1265,6 @@ function Sources() {
             </p>
           </div>
 
-          {/* Search */}
           <div className="relative w-full sm:max-w-xs">
 
             <Search
@@ -938,9 +1275,7 @@ function Sources() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(event) =>
-                setSearchQuery(event.target.value)
-              }
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search sources..."
               className="w-full rounded-lg border border-white/5 bg-white/[0.03] py-2 pl-9 pr-3 text-xs text-white outline-none transition focus:border-violet-500/30"
             />
@@ -949,7 +1284,6 @@ function Sources() {
 
         </div>
 
-        {/* Cards */}
         {filteredSources.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
 
@@ -967,23 +1301,34 @@ function Sources() {
         ) : (
           <div className="p-12 text-center">
 
-            <Video
-              size={32}
-              className="mx-auto text-slate-600"
-            />
+            <Video size={32} className="mx-auto text-slate-600" />
 
             <h3 className="mt-3 text-sm font-medium text-white">
-              No sources found
+              {sources.length === 0
+                ? "No sources configured"
+                : "No sources found"}
             </h3>
 
             <p className="mt-1 text-xs text-slate-500">
-              Try a different search or add a new source.
+              {sources.length === 0
+                ? "Add your first input source to get started."
+                : "Try a different search."}
             </p>
+
+            {sources.length === 0 && (
+              <button
+                type="button"
+                onClick={() => setAddModalOpen(true)}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-violet-500"
+              >
+                <Plus size={14} />
+                Add Source
+              </button>
+            )}
 
           </div>
         )}
 
-        {/* Footer */}
         <div className="flex items-center justify-between border-t border-white/5 px-5 py-4">
 
           <p className="text-xs text-slate-500">
@@ -992,7 +1337,6 @@ function Sources() {
 
           <span className="flex items-center gap-1.5 text-xs text-slate-500">
             <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
-
             MultiStream Input Manager
           </span>
 
@@ -1000,10 +1344,7 @@ function Sources() {
 
       </div>
 
-      {/* =====================================================
-         MODALS
-      ===================================================== */}
-
+      {/* Modals */}
       {addModalOpen && (
         <AddSourceModal
           onClose={() => setAddModalOpen(false)}
@@ -1015,6 +1356,9 @@ function Sources() {
         <SourceSettingsModal
           source={selectedSource}
           onClose={() => setSelectedSource(null)}
+          onSave={handleSaveSettings}
+          onStart={handleStartSource}
+          onStop={handleStopSource}
         />
       )}
 

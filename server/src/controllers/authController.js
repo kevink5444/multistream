@@ -1,7 +1,7 @@
 /* =========================================================
    AUTH CONTROLLER
    ========================================================= */
-
+const emailService = require("../services/emailService");
 const authService = require("../services/authService");
 
 /* =========================================================
@@ -258,7 +258,150 @@ const logout = (req, res) => {
     });
   });
 };
+/* =========================================================
+   FORGOT PASSWORD
+   ========================================================= */
 
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // VALIDATION
+    if (
+      typeof email !== "string" ||
+      !email.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required.",
+      });
+    }
+
+    // NORMALIZE EMAIL
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+    // CREATE RESET TOKEN
+    const resetData =
+      await authService.createPasswordResetToken(
+        normalizedEmail
+      );
+
+    /*
+      SECURITY:
+      Always return the same response whether
+      the email exists or not.
+    */
+
+    const responseMessage =
+      "If an account with that email exists, " +
+      "a password reset link has been sent.";
+
+    // EMAIL NOT FOUND
+    if (!resetData) {
+      return res.status(200).json({
+        success: true,
+        message: responseMessage,
+      });
+    }
+
+    // FRONTEND URL
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      "http://localhost:5173";
+
+    // CREATE RESET URL
+    const resetUrl =
+      `${frontendUrl}/?resetToken=${encodeURIComponent(
+        resetData.resetToken
+      )}`;
+
+    // SEND EMAIL
+    await emailService.sendPasswordResetEmail({
+      email: resetData.user.email,
+      name: resetData.user.name,
+      resetUrl,
+    });
+
+    // SUCCESS RESPONSE
+    return res.status(200).json({
+      success: true,
+      message: responseMessage,
+    });
+
+  } catch (error) {
+    console.error(
+      "Forgot Password Error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Unable to process password reset request.",
+    });
+  }
+};
+
+/* =========================================================
+   RESET PASSWORD
+   ========================================================= */
+
+const resetPassword = async (req, res) => {
+  try {
+    const {
+      token,
+      password,
+      confirmPassword,
+    } = req.body;
+
+    /* VALIDATION */
+
+    if (
+      !token ||
+      !password ||
+      !confirmPassword
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required.",
+      });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password must be at least 8 characters.",
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match.",
+      });
+    }
+
+    /* RESET PASSWORD */
+
+    await authService.resetPassword({
+      token,
+      password,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Password successfully reset. Please sign in.",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 /* =========================================================
    EXPORT CONTROLLER
    ========================================================= */
@@ -268,4 +411,6 @@ module.exports = {
   login,
   getCurrentUser,
   logout,
+  forgotPassword,
+  resetPassword,
 };

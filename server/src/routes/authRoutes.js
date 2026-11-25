@@ -45,6 +45,22 @@ const registerLimiter = rateLimit({
 });
 
 /* =========================================================
+   PASSWORD RESET RATE LIMIT
+   ========================================================= */
+
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message:
+      "Too many password reset attempts. Please try again later.",
+  },
+});
+
+/* =========================================================
    REGISTER
    POST /api/auth/register
    ========================================================= */
@@ -64,6 +80,28 @@ router.post(
   "/login",
   loginLimiter,
   authController.login
+);
+
+/* =========================================================
+   FORGOT PASSWORD
+   POST /api/auth/forgot-password
+   ========================================================= */
+
+router.post(
+  "/forgot-password",
+  passwordResetLimiter,
+  authController.forgotPassword
+);
+
+/* =========================================================
+   RESET PASSWORD
+   POST /api/auth/reset-password
+   ========================================================= */
+
+router.post(
+  "/reset-password",
+  passwordResetLimiter,
+  authController.resetPassword
 );
 
 /* =========================================================

@@ -59,7 +59,73 @@ export const login = async (data) => {
 
   return result;
 };
+  /* =========================================================
+   FORGOT PASSWORD
+   ========================================================= */
 
+export const forgotPassword = async (email) => {
+  const response = await fetch(
+    `${API_URL}/forgot-password`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        email,
+      }),
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message ||
+        "Failed to request password reset."
+    );
+  }
+
+  return result;
+};
+
+/* =========================================================
+   RESET PASSWORD
+   ========================================================= */
+
+export const resetPassword = async ({
+  token,
+  password,
+  confirmPassword,
+}) => {
+  const response = await fetch(
+    `${API_URL}/reset-password`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        token,
+        password,
+        confirmPassword,
+      }),
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message ||
+        "Failed to reset password."
+    );
+  }
+
+  return result;
+};
 /* =========================================================
    GET CURRENT USER
    ========================================================= */

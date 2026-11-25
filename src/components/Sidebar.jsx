@@ -83,22 +83,19 @@ function Sidebar({
   onCloseMobile,
 }) {
   const handleNavigation = (pageId) => {
-    if (onNavigate) {
-      onNavigate(pageId);
-    }
-
-    if (onCloseMobile) {
-      onCloseMobile();
-    }
+    onNavigate?.(pageId);
+    onCloseMobile?.();
   };
 
   return (
     <>
       {/* Mobile Overlay */}
       {mobileOpen && (
-        <div
+        <button
+          type="button"
           className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={onCloseMobile}
+          aria-label="Close sidebar"
         />
       )}
 
@@ -111,16 +108,14 @@ function Sidebar({
           transition-all duration-300 ease-in-out
 
           ${isCollapsed ? "w-[80px]" : "w-[260px]"}
-
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
 
           lg:translate-x-0
         `}
       >
-        {/* Logo Section */}
+        {/* Logo */}
         <div className="flex h-[76px] items-center justify-between border-b border-white/[0.06] px-5">
           <div className="flex items-center gap-3 overflow-hidden">
-            {/* Logo */}
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 shadow-lg shadow-violet-500/20">
               <Zap className="h-5 w-5 text-white" />
             </div>
@@ -138,8 +133,9 @@ function Sidebar({
             )}
           </div>
 
-          {/* Close Mobile Sidebar */}
+          {/* Close Mobile */}
           <button
+            type="button"
             onClick={onCloseMobile}
             className="rounded-lg p-2 text-gray-400 hover:bg-white/5 hover:text-white lg:hidden"
             aria-label="Close sidebar"
@@ -166,6 +162,7 @@ function Sidebar({
                   return (
                     <button
                       key={item.id}
+                      type="button"
                       onClick={() => handleNavigation(item.id)}
                       title={isCollapsed ? item.name : undefined}
                       className={`
@@ -206,7 +203,6 @@ function Sidebar({
                         </span>
                       )}
 
-                      {/* Active Badge */}
                       {!isCollapsed && item.id === "sessions" && (
                         <span className="rounded-md bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">
                           LIVE
@@ -220,7 +216,7 @@ function Sidebar({
           ))}
         </div>
 
-        {/* CPU Efficiency Card */}
+        {/* CPU Efficiency */}
         {!isCollapsed && (
           <div className="mx-3 mb-4 rounded-xl border border-violet-500/10 bg-gradient-to-br from-violet-500/[0.08] to-blue-500/[0.04] p-3.5">
             <div className="mb-3 flex items-center gap-2">
@@ -288,9 +284,10 @@ function Sidebar({
           </div>
         </div>
 
-        {/* Collapse Button Desktop */}
+        {/* Collapse Button */}
         <div className="hidden border-t border-white/[0.06] p-3 lg:block">
           <button
+            type="button"
             onClick={onToggleCollapse}
             className={`
               flex w-full items-center gap-3 rounded-lg

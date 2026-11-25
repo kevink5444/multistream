@@ -1,13 +1,41 @@
 import { useEffect, useState } from "react";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 
 import DashboardLayout from "./layouts/DashboardLayout";
+
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import { getCurrentUser } from "./services/authService";
 
 // =====================================
-// YOUTUBE LIVE LOADING PAGE
+// LOADING PAGE
+// =====================================
+
+function LoadingPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#090B10] text-white">
+      <div className="text-center">
+        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+
+        <p className="text-sm text-gray-400">
+          Checking authentication...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// =====================================
+// YOUTUBE LIVE LOADING
 // =====================================
 
 function YouTubeLiveLoading() {
@@ -29,35 +57,30 @@ function YouTubeLiveLoading() {
 }
 
 // =====================================
-// APP
+// APP ROUTES
 // =====================================
 
-function App() {
+function AppRoutes() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [authPage, setAuthPage] = useState("login");
 
-  // =====================================
-  // DETECT YOUTUBE LIVE LOADING PAGE
-  // =====================================
+  const location = useLocation();
+
+  const queryParams = new URLSearchParams(location.search);
+
+  const resetToken =
+    queryParams.get("token") ||
+    queryParams.get("resetToken");
 
   const isYouTubeLiveCreating =
-    new URLSearchParams(window.location.search).get(
-      "youtube-live-creating"
-    ) === "1";
+    queryParams.get("youtube-live-creating") === "1";
 
   // =====================================
   // CHECK SESSION
   // =====================================
 
   useEffect(() => {
-    // Tidak perlu mengecek session pada halaman loading
-    if (isYouTubeLiveCreating) {
-      setIsLoading(false);
-      return;
-    }
-
-    const checkSession = async () => {
+    async function checkSession() {
       try {
         const currentUser = await getCurrentUser();
         setUser(currentUser);
@@ -67,27 +90,26 @@ function App() {
       } finally {
         setIsLoading(false);
       }
-    };
+    }
 
     checkSession();
-  }, [isYouTubeLiveCreating]);
+  }, []);
 
   // =====================================
   // AUTH HANDLERS
   // =====================================
 
-  const handleLoginSuccess = (loggedInUser) => {
+  function handleLoginSuccess(loggedInUser) {
     setUser(loggedInUser);
-  };
+  }
 
-  const handleRegisterSuccess = (registeredUser) => {
+  function handleRegisterSuccess(registeredUser) {
     setUser(registeredUser);
-  };
+  }
 
-  const handleLogout = () => {
+  function handleLogout() {
     setUser(null);
-    setAuthPage("login");
-  };
+  }
 
   // =====================================
   // YOUTUBE LIVE LOADING
@@ -102,50 +124,149 @@ function App() {
   // =====================================
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#090B10] text-white">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
-
-          <p className="text-sm text-gray-400">
-            Checking authentication...
-          </p>
-        </div>
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   // =====================================
-  // AUTH PAGES
-  // =====================================
-
-  if (!user) {
-    if (authPage === "register") {
-      return (
-        <Register
-          onRegisterSuccess={handleRegisterSuccess}
-          onNavigateLogin={() => setAuthPage("login")}
-        />
-      );
-    }
-
-    return (
-      <Login
-        onLoginSuccess={handleLoginSuccess}
-        onNavigateRegister={() => setAuthPage("register")}
-      />
-    );
-  }
-
-  // =====================================
-  // DASHBOARD
+  // ROUTES
   // =====================================
 
   return (
-    <DashboardLayout
-      user={user}
-      onLogout={handleLogout}
-    />
+    <Routes>
+      {/* ROOT */}
+
+      <Route
+        path="/"
+        element={
+          resetToken ? (
+            <Navigate
+              to={`/reset-password?token=${encodeURIComponent(resetToken)}`}
+              replace
+            />
+          ) : user ? (
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          ) : (
+            <Navigate
+              to="/login"
+              replace
+            />
+          )
+        }
+      />
+
+      {/* LOGIN */}
+
+      <Route
+        path="/login"
+        element={
+          user ? (
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          ) : (
+            <Login
+              onLoginSuccess={handleLoginSuccess}
+              onNavigateRegister={() => {
+                window.location.assign("/register");
+              }}
+              onNavigateForgotPassword={() => {
+                window.location.assign("/forgot-password");
+              }}
+            />
+            )
+          }
+      />
+
+      {/* REGISTER */}
+
+      <Route
+        path="/register"
+        element={
+          user ? (
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          ) : (
+            <Register
+              onRegisterSuccess={handleRegisterSuccess}
+              onNavigateLogin={() => {
+                window.location.assign("/login");
+              }}
+            />
+          )
+          }
+      />
+
+      {/* FORGOT PASSWORD */}
+
+      <Route
+        path="/forgot-password"
+        element={
+          user ? (
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          ) : (
+            <ForgotPassword
+              onNavigateLogin={() => {
+                window.location.assign("/login");
+              }}
+            />
+            )
+          }
+      />
+
+      {/* RESET PASSWORD */}
+
+      <Route
+        path="/reset-password"
+        element={
+          <ResetPassword
+            token={resetToken}
+            onNavigateLogin={() => {
+              window.location.assign("/login");
+            }}
+          />
+        }
+      />
+
+      {/* PROTECTED ROUTES */}
+
+      <Route
+        path="/*"
+        element={
+          user ? (
+            <DashboardLayout
+              user={user}
+              onLogout={handleLogout}
+            />
+          ) : (
+            <Navigate
+              to="/login"
+              replace
+            />
+          )
+        }
+      />
+    </Routes>
+  );
+}
+
+// =====================================
+// ROOT APP
+// =====================================
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   );
 }
 

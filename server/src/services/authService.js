@@ -1,7 +1,9 @@
+
 /* =========================================================
    AUTH SERVICE
    ========================================================= */
 
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcryptjs");
@@ -31,7 +33,8 @@ const ensureUsersFile = () => {
   if (!fs.existsSync(USERS_FILE)) {
     fs.writeFileSync(
       USERS_FILE,
-      JSON.stringify([], null, 2)
+      JSON.stringify([], null, 2),
+      "utf8"
     );
   }
 };
@@ -49,8 +52,16 @@ const getAllUsers = () => {
       "utf8"
     );
 
-    return JSON.parse(data);
+    const users = JSON.parse(data);
+
+    if (!Array.isArray(users)) {
+      throw new Error("Invalid users data.");
+    }
+
+    return users;
   } catch (error) {
+    console.error("Read Users Error:", error);
+
     throw new Error(
       "Failed to read user data."
     );
@@ -64,10 +75,30 @@ const getAllUsers = () => {
 const saveUsers = (users) => {
   ensureUsersFile();
 
-  fs.writeFileSync(
-    USERS_FILE,
-    JSON.stringify(users, null, 2)
-  );
+  const temporaryFile = `${USERS_FILE}.tmp`;
+
+  try {
+    fs.writeFileSync(
+      temporaryFile,
+      JSON.stringify(users, null, 2),
+      "utf8"
+    );
+
+    fs.renameSync(
+      temporaryFile,
+      USERS_FILE
+    );
+  } catch (error) {
+    if (fs.existsSync(temporaryFile)) {
+      fs.unlinkSync(temporaryFile);
+    }
+
+    console.error("Save Users Error:", error);
+
+    throw new Error(
+      "Failed to save user data."
+    );
+  }
 };
 
 /* =========================================================
@@ -75,12 +106,19 @@ const saveUsers = (users) => {
    ========================================================= */
 
 const findUserByEmail = (email) => {
+  if (!email || typeof email !== "string") {
+    return undefined;
+  }
+
+  const normalizedEmail =
+    email.trim().toLowerCase();
+
   const users = getAllUsers();
 
   return users.find(
     (user) =>
       user.email.toLowerCase() ===
-      email.toLowerCase()
+      normalizedEmail
   );
 };
 
@@ -107,10 +145,13 @@ const registerUser = async ({
 }) => {
   const users = getAllUsers();
 
+  const normalizedEmail =
+    email.trim().toLowerCase();
+
   const existingUser = users.find(
     (user) =>
       user.email.toLowerCase() ===
-      email.toLowerCase()
+      normalizedEmail
   );
 
   if (existingUser) {
@@ -127,7 +168,7 @@ const registerUser = async ({
   const newUser = {
     id: `user_${Date.now()}`,
     name,
-    email: email.toLowerCase(),
+    email: normalizedEmail,
     passwordHash,
     role: "user",
     channelLimit: 2,
@@ -165,6 +206,143 @@ const verifyPassword = async (
 };
 
 /* =========================================================
+   CREATE PASSWORD RESET TOKEN
+   ========================================================= */
+
+const createPasswordResetToken = (email) => {
+  const normalizedEmail =
+    email.trim().toLowerCase();
+
+  const users = getAllUsers();
+
+  const userIndex = users.findIndex(
+    (user) =>
+      user.email.toLowerCase() ===
+      normalizedEmail
+  );
+
+  if (userIndex === -1) {
+    return null;
+  }
+
+  const user = users[userIndex];
+
+  /* Generate random token */
+
+  const resetToken = crypto
+    .randomBytes(32)
+    .toString("hex");
+
+  /* Hash token before storing */
+
+  const resetTokenHash = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  /* Token expires in 30 minutes */
+
+  const expiresAt =
+    Date.now() + 30 * 60 * 1000;
+
+  users[userIndex] = {
+    ...user,
+    resetPasswordToken: resetTokenHash,
+    resetPasswordExpires: expiresAt,
+  };
+
+  saveUsers(users);
+
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    },
+    resetToken,
+  };
+};
+
+/* =========================================================
+   RESET PASSWORD
+   ========================================================= */
+
+const resetPassword = async ({
+  token,
+  password,
+}) => {
+  if (
+    typeof token !== "string" ||
+    !token.trim()
+  ) {
+    throw new Error(
+      "Invalid or expired reset link."
+    );
+  }
+
+  const users = getAllUsers();
+
+  /* Hash submitted token */
+
+  const tokenHash = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  /* Find user by reset token */
+
+  const userIndex = users.findIndex(
+    (user) =>
+      user.resetPasswordToken === tokenHash
+  );
+
+  if (userIndex === -1) {
+    throw new Error(
+      "Invalid or expired reset link."
+    );
+  }
+
+  const user = users[userIndex];
+
+  /* Check token expiration */
+
+  if (
+    !user.resetPasswordExpires ||
+    user.resetPasswordExpires <= Date.now()
+  ) {
+    throw new Error(
+      "Invalid or expired reset link."
+    );
+  }
+
+  /* Hash new password */
+
+  const passwordHash = await bcrypt.hash(
+    password,
+    12
+  );
+
+  /* Remove reset token fields */
+
+  const {
+    resetPasswordToken,
+    resetPasswordExpires,
+    ...userWithoutResetToken
+  } = user;
+
+  /* Update password */
+
+  users[userIndex] = {
+    ...userWithoutResetToken,
+    passwordHash,
+  };
+
+  saveUsers(users);
+
+  return true;
+};
+
+/* =========================================================
    EXPORT SERVICE
    ========================================================= */
 
@@ -174,4 +352,6 @@ module.exports = {
   findUserById,
   registerUser,
   verifyPassword,
+  createPasswordResetToken,
+  resetPassword,
 };

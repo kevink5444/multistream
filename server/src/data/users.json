@@ -13,10 +13,22 @@
     "id": "admin_1795333246880",
     "name": "Multistream Administrator",
     "email": "admin@example.com",
-    "passwordHash": "$2b$12$Osxfw93KwMv9.kglqIKl2eTxnUO8JsIT2ZUFHy.RP5uO9aMtF56n.",
+    "passwordHash": "$2b$12$lNYJx2e93ajy5ETxEiihtuVJJs/4l12LtqVLhwZF5ol5m6zTMFb1y",
     "role": "admin",
     "channelLimit": null,
     "status": "active",
     "createdAt": "2026-11-22T07:40:46.881Z"
+  },
+  {
+    "id": "user_1795595260035",
+    "name": "Adit",
+    "email": "adit@example.com",
+    "passwordHash": "$2b$12$Fv9oaykJkDs9PySUOczHu.P/93PS/uSIGc8h5t6/rUJAVHIJajjty",
+    "role": "user",
+    "channelLimit": 2,
+    "status": "active",
+    "createdAt": "2026-11-25T08:27:40.035Z",
+    "resetPasswordToken": "50ca6ebaa3b4c1ccbb537c8197958ee8a559cd0cf9f2f32bbcce8e141eaa6998",
+    "resetPasswordExpires": 1795602535341
   }
 ]

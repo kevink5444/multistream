@@ -1,17 +1,22 @@
+
 import { useState } from "react";
-import Sources from "../pages/Sources";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+
 import Dashboard from "../pages/Dashboard";
+import Sources from "../pages/Sources";
 import Destinations from "../pages/Destinations";
 import LiveSessions from "../pages/LiveSessions";
 import Analytics from "../pages/Analytics";
 import ActivityLogs from "../pages/ActivityLogs";
 import Settings from "../pages/Settings";
 import HelpCenter from "../pages/HelpCenter";
-/* =====================================
-   PAGE CONFIGURATION
-===================================== */
+
+// =====================================
+// PAGE CONFIGURATION
+// =====================================
 
 const pageConfig = {
   dashboard: {
@@ -55,72 +60,41 @@ const pageConfig = {
   },
 };
 
-/* =====================================
-   PLACEHOLDER PAGE
-===================================== */
-
-function PlaceholderPage({ title, description }) {
-  return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-white/[0.06] bg-[#12151C] px-6 text-center">
-
-      {/* Icon */}
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-500/10 bg-violet-500/10">
-        <div className="h-6 w-6 rounded-lg border-2 border-violet-400/40" />
-      </div>
-
-      {/* Title */}
-      <h2 className="text-lg font-semibold text-white">
-        {title}
-      </h2>
-
-      {/* Description */}
-      <p className="mt-2 max-w-md text-sm leading-relaxed text-gray-500">
-        {description}
-      </p>
-
-      {/* Coming Soon */}
-      <div className="mt-5 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5">
-        <span className="text-xs font-medium text-gray-500">
-          Coming Soon
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/* =====================================
-   DASHBOARD LAYOUT
-===================================== */
+// =====================================
+// DASHBOARD LAYOUT
+// =====================================
 
 function DashboardLayout({ user, onLogout }) {
-  /* =====================================
-     NAVIGATION STATE
-  ===================================== */
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const [activePage, setActivePage] = useState("dashboard");
+  // =====================================
+  // CURRENT PAGE
+  // =====================================
 
-  /* =====================================
-     SIDEBAR STATE
-  ===================================== */
+  const activePage =
+    location.pathname.split("/").filter(Boolean)[0] ||
+    "dashboard";
+
+  // =====================================
+  // SIDEBAR STATE
+  // =====================================
 
   const [isCollapsed, setIsCollapsed] = useState(false);
-
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  /* =====================================
-     NAVIGATION HANDLER
-  ===================================== */
+  // =====================================
+  // NAVIGATION
+  // =====================================
 
   const handleNavigate = (page) => {
-    setActivePage(page);
-
-    // Close mobile sidebar after navigation
+    navigate(`/${page}`);
     setMobileOpen(false);
   };
 
-  /* =====================================
-     SIDEBAR HANDLERS
-  ===================================== */
+  // =====================================
+  // SIDEBAR HANDLERS
+  // =====================================
 
   const handleToggleCollapse = () => {
     setIsCollapsed((previous) => !previous);
@@ -134,16 +108,16 @@ function DashboardLayout({ user, onLogout }) {
     setMobileOpen(false);
   };
 
-  /* =====================================
-     PAGE CONFIGURATION
-  ===================================== */
+  // =====================================
+  // PAGE CONFIGURATION
+  // =====================================
 
   const currentPage =
     pageConfig[activePage] || pageConfig.dashboard;
 
-  /* =====================================
-     PAGE CONTENT
-  ===================================== */
+  // =====================================
+  // PAGE CONTENT
+  // =====================================
 
   const renderPage = () => {
     switch (activePage) {
@@ -151,68 +125,39 @@ function DashboardLayout({ user, onLogout }) {
         return <Dashboard />;
 
       case "sources":
-        return (
-          <Sources
-            
-          />
-        );
+        return <Sources />;
 
       case "destinations":
-        return (
-          <Destinations
-            />
-        );
+        return <Destinations />;
 
       case "sessions":
-        return (
-          <LiveSessions
-        
-          />
-        );
+        return <LiveSessions />;
 
       case "analytics":
-        return (
-          <Analytics
-  
-          />
-        );
+        return <Analytics />;
 
       case "logs":
-        return (
-          <ActivityLogs
-            
-          />
-        );
+        return <ActivityLogs />;
 
       case "settings":
-        return (
-          <Settings
-          />
-        );
+        return <Settings />;
 
       case "help":
-        return (
-          <HelpCenter
-           
-          />
-        );
+        return <HelpCenter />;
 
       default:
         return <Dashboard />;
     }
   };
 
-  /* =====================================
-     MAIN LAYOUT
-  ===================================== */
+  // =====================================
+  // MAIN LAYOUT
+  // =====================================
 
   return (
     <div className="min-h-screen bg-[#090B10] text-white">
 
-      {/* =================================
-          SIDEBAR
-      ================================= */}
-
+      {/* SIDEBAR */}
       <Sidebar
         activePage={activePage}
         onNavigate={handleNavigate}
@@ -222,14 +167,10 @@ function DashboardLayout({ user, onLogout }) {
         onCloseMobile={handleCloseMobileSidebar}
       />
 
-      {/* =================================
-          MAIN AREA
-      ================================= */}
-
+      {/* MAIN AREA */}
       <div
         className={`
           min-h-screen transition-all duration-300
-
           ${
             isCollapsed
               ? "lg:pl-[80px]"
@@ -237,45 +178,22 @@ function DashboardLayout({ user, onLogout }) {
           }
         `}
       >
+        {/* TOPBAR */}
+        <Topbar
+          pageTitle={currentPage.title}
+          pageDescription={currentPage.description}
+          onOpenMobileSidebar={handleOpenMobileSidebar}
+          user={user}
+          onLogout={onLogout}
+        />
 
-        {/* =================================
-            TOPBAR
-        ================================= */}
-
-      <Topbar
-      pageTitle={currentPage.title}
-      pageDescription={currentPage.description}
-      onOpenMobileSidebar={handleOpenMobileSidebar}
-      user={user}
-      onLogout={onLogout}
-      />
-
-        {/* =================================
-            CONTENT
-        ================================= */}
-
+        {/* CONTENT */}
         <main className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-
           <div className="mx-auto w-full max-w-[1600px]">
             {renderPage()}
           </div>
-
         </main>
-
       </div>
-
-      {/* =================================
-          MOBILE OVERLAY
-      ================================= */}
-
-      {mobileOpen && (
-        <button
-          onClick={handleCloseMobileSidebar}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-          aria-label="Close sidebar"
-        />
-      )}
-
     </div>
   );
 }
