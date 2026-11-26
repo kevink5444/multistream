@@ -1,0 +1,920 @@
+[
+  {
+    "id": 1795709410442,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-26T16:09:26.202Z",
+      "currentStartedAt": "2026-11-26T16:10:10.143Z"
+    },
+    "timestamp": "2026-11-26T16:10:10.152Z",
+    "createdAt": "2026-11-26T16:10:10.152Z"
+  },
+  {
+    "id": 1795709366860,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-26T16:09:22.079Z",
+      "currentStartedAt": "2026-11-26T16:09:26.202Z"
+    },
+    "timestamp": "2026-11-26T16:09:26.208Z",
+    "createdAt": "2026-11-26T16:09:26.208Z"
+  },
+  {
+    "id": 1795709362841,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-26T16:09:07.198Z",
+      "currentStartedAt": "2026-11-26T16:09:22.079Z"
+    },
+    "timestamp": "2026-11-26T16:09:22.084Z",
+    "createdAt": "2026-11-26T16:09:22.084Z"
+  },
+  {
+    "id": 1795709347287,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-26T16:08:32.978Z",
+      "currentStartedAt": "2026-11-26T16:09:07.198Z"
+    },
+    "timestamp": "2026-11-26T16:09:07.204Z",
+    "createdAt": "2026-11-26T16:09:07.204Z"
+  },
+  {
+    "id": 1795709313695,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-26T16:08:03.640Z",
+      "currentStartedAt": "2026-11-26T16:08:32.978Z"
+    },
+    "timestamp": "2026-11-26T16:08:32.983Z",
+    "createdAt": "2026-11-26T16:08:32.983Z"
+  },
+  {
+    "id": 1795709283954,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-26T16:07:50.764Z",
+      "currentStartedAt": "2026-11-26T16:08:03.640Z"
+    },
+    "timestamp": "2026-11-26T16:08:03.646Z",
+    "createdAt": "2026-11-26T16:08:03.646Z"
+  },
+  {
+    "id": 1795709270814,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-26T15:58:07.379Z",
+      "currentStartedAt": "2026-11-26T16:07:50.764Z"
+    },
+    "timestamp": "2026-11-26T16:07:50.769Z",
+    "createdAt": "2026-11-26T16:07:50.769Z"
+  },
+  {
+    "id": 1795708687788,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-26T15:15:41.198Z",
+      "currentStartedAt": "2026-11-26T15:58:07.379Z"
+    },
+    "timestamp": "2026-11-26T15:58:07.387Z",
+    "createdAt": "2026-11-26T15:58:07.387Z"
+  },
+  {
+    "id": 1795706142011,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-26T15:15:07.319Z",
+      "currentStartedAt": "2026-11-26T15:15:41.198Z"
+    },
+    "timestamp": "2026-11-26T15:15:41.206Z",
+    "createdAt": "2026-11-26T15:15:41.206Z"
+  },
+  {
+    "id": 1795706108232,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": {
+      "startedAt": "2026-11-26T15:15:07.319Z"
+    },
+    "timestamp": "2026-11-26T15:15:07.327Z",
+    "createdAt": "2026-11-26T15:15:07.327Z"
+  },
+  {
+    "id": 1795706094947,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:14:54.121Z",
+    "createdAt": "2026-11-26T15:14:54.121Z"
+  },
+  {
+    "id": 1795706082543,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:14:41.765Z",
+    "createdAt": "2026-11-26T15:14:41.765Z"
+  },
+  {
+    "id": 1795706077993,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:14:37.884Z",
+    "createdAt": "2026-11-26T15:14:37.884Z"
+  },
+  {
+    "id": 1795706064832,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:14:23.851Z",
+    "createdAt": "2026-11-26T15:14:23.851Z"
+  },
+  {
+    "id": 1795706058628,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:14:17.736Z",
+    "createdAt": "2026-11-26T15:14:17.736Z"
+  },
+  {
+    "id": 1795706040259,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:14:00.046Z",
+    "createdAt": "2026-11-26T15:14:00.046Z"
+  },
+  {
+    "id": 1795706034518,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:13:53.658Z",
+    "createdAt": "2026-11-26T15:13:53.659Z"
+  },
+  {
+    "id": 1795706022921,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:13:42.050Z",
+    "createdAt": "2026-11-26T15:13:42.050Z"
+  },
+  {
+    "id": 1795706017736,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:13:36.879Z",
+    "createdAt": "2026-11-26T15:13:36.879Z"
+  },
+  {
+    "id": 1795706003788,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:13:23.044Z",
+    "createdAt": "2026-11-26T15:13:23.044Z"
+  },
+  {
+    "id": 1795705997548,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:13:17.287Z",
+    "createdAt": "2026-11-26T15:13:17.287Z"
+  },
+  {
+    "id": 1795705986897,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:13:06.450Z",
+    "createdAt": "2026-11-26T15:13:06.450Z"
+  },
+  {
+    "id": 1795705979811,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:12:59.571Z",
+    "createdAt": "2026-11-26T15:12:59.571Z"
+  },
+  {
+    "id": 1795705549218,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:05:48.750Z",
+    "createdAt": "2026-11-26T15:05:48.750Z"
+  },
+  {
+    "id": 1795705383170,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:03:02.426Z",
+    "createdAt": "2026-11-26T15:03:02.426Z"
+  },
+  {
+    "id": 1795705381461,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T15:03:00.756Z",
+    "createdAt": "2026-11-26T15:03:00.756Z"
+  },
+  {
+    "id": 1795704388128,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T14:46:27.754Z",
+    "createdAt": "2026-11-26T14:46:27.754Z"
+  },
+  {
+    "id": 1795702950916,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795582791743,
+      "sourceType": "audio",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T14:22:29.996Z",
+    "createdAt": "2026-11-26T14:22:29.996Z"
+  },
+  {
+    "id": 1795702946340,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795582791743,
+      "sourceType": "audio",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T14:22:25.860Z",
+    "createdAt": "2026-11-26T14:22:25.860Z"
+  },
+  {
+    "id": 1795702872795,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T14:21:12.067Z",
+    "createdAt": "2026-11-26T14:21:12.067Z"
+  },
+  {
+    "id": 1795702870313,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T14:21:09.390Z",
+    "createdAt": "2026-11-26T14:21:09.390Z"
+  },
+  {
+    "id": 1795701403654,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T13:56:42.697Z",
+    "createdAt": "2026-11-26T13:56:42.697Z"
+  },
+  {
+    "id": 1795701355556,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T13:55:54.564Z",
+    "createdAt": "2026-11-26T13:55:54.564Z"
+  },
+  {
+    "id": 1795701313163,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T13:55:12.252Z",
+    "createdAt": "2026-11-26T13:55:12.252Z"
+  },
+  {
+    "id": 1795701312033,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T13:55:11.270Z",
+    "createdAt": "2026-11-26T13:55:11.270Z"
+  },
+  {
+    "id": 1795701229149,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T13:53:48.722Z",
+    "createdAt": "2026-11-26T13:53:48.723Z"
+  },
+  {
+    "id": 1795701224841,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T13:53:44.529Z",
+    "createdAt": "2026-11-26T13:53:44.529Z"
+  },
+  {
+    "id": 1795700987541,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T13:49:47.027Z",
+    "createdAt": "2026-11-26T13:49:47.027Z"
+  },
+  {
+    "id": 1795700983838,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T13:49:42.877Z",
+    "createdAt": "2026-11-26T13:49:42.877Z"
+  },
+  {
+    "id": 1795700939546,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T13:48:59.022Z",
+    "createdAt": "2026-11-26T13:48:59.022Z"
+  },
+  {
+    "id": 1795700926252,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T13:48:45.343Z",
+    "createdAt": "2026-11-26T13:48:45.343Z"
+  },
+  {
+    "id": 1795700790819,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T13:46:30.355Z",
+    "createdAt": "2026-11-26T13:46:30.355Z"
+  },
+  {
+    "id": 1795700788916,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T13:46:28.101Z",
+    "createdAt": "2026-11-26T13:46:28.101Z"
+  },
+  {
+    "id": 1795700781326,
+    "type": "error",
+    "category": "source",
+    "title": "Source Preview Failed",
+    "description": "test1: Please select a video file first.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795582786338,
+      "sourceType": "video",
+      "action": "preview_failed",
+      "errorName": "Error"
+    },
+    "timestamp": "2026-11-26T13:46:21.205Z",
+    "createdAt": "2026-11-26T13:46:21.205Z"
+  },
+  {
+    "id": 1795700527651,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795582791743,
+      "sourceType": "audio",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T13:42:07.489Z",
+    "createdAt": "2026-11-26T13:42:07.489Z"
+  },
+  {
+    "id": 1795700524072,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795582791743,
+      "sourceType": "audio",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T13:42:03.854Z",
+    "createdAt": "2026-11-26T13:42:03.854Z"
+  },
+  {
+    "id": 1795700488498,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T13:41:27.529Z",
+    "createdAt": "2026-11-26T13:41:27.529Z"
+  },
+  {
+    "id": 1795700484755,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T13:41:24.146Z",
+    "createdAt": "2026-11-26T13:41:24.146Z"
+  },
+  {
+    "id": 1795700468393,
+    "type": "info",
+    "category": "source",
+    "title": "Source Settings Updated",
+    "description": "Settings for test1 were updated.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "settings_updated",
+      "device": "USB2.0 HD UVC WebCam (2b7e:b685)"
+    },
+    "timestamp": "2026-11-26T13:41:07.571Z",
+    "createdAt": "2026-11-26T13:41:07.571Z"
+  },
+  {
+    "id": 1795700467338,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T13:41:06.631Z",
+    "createdAt": "2026-11-26T13:41:06.631Z"
+  },
+  {
+    "id": 1795700358165,
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "test1 preview was stopped.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-26T13:39:17.407Z",
+    "createdAt": "2026-11-26T13:39:17.407Z"
+  },
+  {
+    "id": 1795700354875,
+    "type": "info",
+    "category": "source",
+    "title": "Source Settings Updated",
+    "description": "Settings for test1 were updated.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "settings_updated",
+      "device": "USB2.0 HD UVC WebCam (2b7e:b685)"
+    },
+    "timestamp": "2026-11-26T13:39:14.370Z",
+    "createdAt": "2026-11-26T13:39:14.370Z"
+  },
+  {
+    "id": 1795700353744,
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "test1 preview started successfully.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-26T13:39:13.263Z",
+    "createdAt": "2026-11-26T13:39:13.263Z"
+  },
+  {
+    "id": 1795700340406,
+    "type": "success",
+    "category": "source",
+    "title": "Source Added",
+    "description": "test1 was added to the source manager.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795700340130,
+      "sourceType": "camera",
+      "action": "source_added"
+    },
+    "timestamp": "2026-11-26T13:39:00.152Z",
+    "createdAt": "2026-11-26T13:39:00.152Z"
+  },
+  {
+    "id": 1795700328493,
+    "type": "warning",
+    "category": "source",
+    "title": "Source Deleted",
+    "description": "test1 was removed from the source manager.",
+    "destination": "test1",
+    "metadata": {
+      "sourceId": 1795582775190,
+      "sourceType": "camera",
+      "action": "source_deleted"
+    },
+    "timestamp": "2026-11-26T13:38:48.082Z",
+    "createdAt": "2026-11-26T13:38:48.082Z"
+  },
+  {
+    "id": 1795698415828,
+    "type": "success",
+    "category": "source",
+    "title": "Source Test",
+    "description": "Testing Activity Logs POST API.",
+    "destination": "Test Camera",
+    "metadata": {
+      "sourceType": "camera",
+      "test": true
+    },
+    "timestamp": "2026-11-26T13:06:55.309Z",
+    "createdAt": "2026-11-26T13:06:55.309Z"
+  },
+  {
+    "id": 1795698277396,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T13:04:36.848Z",
+    "createdAt": "2026-11-26T13:04:36.848Z"
+  },
+  {
+    "id": 1795698275974,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T13:04:35.389Z",
+    "createdAt": "2026-11-26T13:04:35.389Z"
+  },
+  {
+    "id": 1795698257030,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T13:04:16.290Z",
+    "createdAt": "2026-11-26T13:04:16.291Z"
+  },
+  {
+    "id": 1795698253780,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T13:04:12.868Z",
+    "createdAt": "2026-11-26T13:04:12.868Z"
+  },
+  {
+    "id": 1795698218628,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T13:03:38.162Z",
+    "createdAt": "2026-11-26T13:03:38.163Z"
+  },
+  {
+    "id": 1795698215368,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T13:03:34.663Z",
+    "createdAt": "2026-11-26T13:03:34.664Z"
+  },
+  {
+    "id": 1795698203844,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T13:03:23.100Z",
+    "createdAt": "2026-11-26T13:03:23.100Z"
+  },
+  {
+    "id": 1795698198605,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T13:03:17.851Z",
+    "createdAt": "2026-11-26T13:03:17.852Z"
+  },
+  {
+    "id": 1795698179211,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T13:02:59.057Z",
+    "createdAt": "2026-11-26T13:02:59.057Z"
+  },
+  {
+    "id": 1795697205475,
+    "type": "warning",
+    "category": "destination",
+    "title": "Destination deleted",
+    "description": "assa (youtube) was removed.",
+    "destination": "assa",
+    "metadata": {
+      "destinationId": 5,
+      "platform": "youtube",
+      "previousStatus": "disabled"
+    },
+    "timestamp": "2026-11-26T12:46:44.481Z",
+    "createdAt": "2026-11-26T12:46:44.481Z"
+  },
+  {
+    "id": 1795697126536,
+    "type": "info",
+    "category": "destination",
+    "title": "Destination updated",
+    "description": "test1234 (youtube) was successfully updated.",
+    "destination": "test1234",
+    "metadata": {
+      "destinationId": 36,
+      "platform": "youtube",
+      "status": "connected"
+    },
+    "timestamp": "2026-11-26T12:45:26.172Z",
+    "createdAt": "2026-11-26T12:45:26.172Z"
+  },
+  {
+    "id": 1795696890944,
+    "type": "success",
+    "category": "destination",
+    "title": "Destination created",
+    "description": "test1234 (youtube) was successfully added.",
+    "destination": "test1234",
+    "metadata": {
+      "destinationId": 36,
+      "platform": "youtube",
+      "status": "connected"
+    },
+    "timestamp": "2026-11-26T12:41:30.213Z",
+    "createdAt": "2026-11-26T12:41:30.213Z"
+  },
+  {
+    "id": 1795696846455,
+    "type": "success",
+    "category": "system",
+    "title": "Backend initialized",
+    "description": "MultiStream backend server started successfully.",
+    "destination": "System",
+    "metadata": null,
+    "timestamp": "2026-11-26T12:40:45.933Z",
+    "createdAt": "2026-11-26T12:40:45.933Z"
+  }
+]

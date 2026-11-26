@@ -133,6 +133,73 @@ const findUserById = (id) => {
     (user) => user.id === id
   );
 };
+/* =========================================================
+   UPDATE USER PROFILE
+   ========================================================= */
+
+const updateUserProfile = ({
+  id,
+  name,
+}) => {
+  if (!id) {
+    throw new Error("User ID is required.");
+  }
+
+  if (
+    typeof name !== "string" ||
+    !name.trim()
+  ) {
+    throw new Error("Name is required.");
+  }
+
+  const trimmedName = name.trim();
+
+  if (trimmedName.length < 2) {
+    throw new Error(
+      "Name must be at least 2 characters."
+    );
+  }
+
+  if (trimmedName.length > 50) {
+    throw new Error(
+      "Name cannot exceed 50 characters."
+    );
+  }
+
+  const users = getAllUsers();
+
+  const userIndex = users.findIndex(
+    (user) => user.id === id
+  );
+
+  if (userIndex === -1) {
+    throw new Error("User not found.");
+  }
+
+  // Update user data
+  users[userIndex] = {
+    ...users[userIndex],
+    name: trimmedName,
+    updatedAt: new Date().toISOString(),
+  };
+
+  // Save permanently to users.json
+  saveUsers(users);
+
+  // Return safe user data
+  const updatedUser = users[userIndex];
+
+  return {
+    id: updatedUser.id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    role: updatedUser.role,
+    channelLimit: updatedUser.channelLimit,
+    status: updatedUser.status,
+    createdAt: updatedUser.createdAt,
+    updatedAt: updatedUser.updatedAt,
+  };
+};
 
 /* =========================================================
    REGISTER USER
@@ -351,6 +418,7 @@ module.exports = {
   findUserByEmail,
   findUserById,
   registerUser,
+  updateUserProfile,
   verifyPassword,
   createPasswordResetToken,
   resetPassword,

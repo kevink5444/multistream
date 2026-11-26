@@ -270,6 +270,16 @@ function AppRoutes() {
     // Do not reset the selected theme.
     // Preserve the user's theme preference.
   }
+  // =====================================
+// PROFILE UPDATE HANDLER
+// =====================================
+
+function handleProfileUpdated(updatedUser) {
+  setUser((previousUser) => ({
+    ...previousUser,
+    ...updatedUser,
+  }));
+}
 
   // =====================================
   // YOUTUBE LIVE LOADING
@@ -397,8 +407,7 @@ function AppRoutes() {
           />
         }
       />
-
-      {/* PROTECTED ROUTES */}
+            {/* PROTECTED ROUTES */}
 
       <Route
         path="/*"
@@ -407,6 +416,7 @@ function AppRoutes() {
             <DashboardLayout
               user={user}
               onLogout={handleLogout}
+              onProfileUpdated={handleProfileUpdated}
             />
           ) : (
             <Navigate
@@ -433,3 +443,5 @@ function App() {
 }
 
 export default App;
+
+

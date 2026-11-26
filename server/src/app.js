@@ -5,13 +5,16 @@
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
+
 const settingsRoutes = require("./routes/settingsRoutes");
 const authRoutes = require("./routes/authRoutes");
 const destinationRoutes = require("./routes/destinationRoutes");
 const youtubeOAuthRoutes = require("./routes/youtubeOAuthRoutes");
 const youtubeLiveRoutes = require("./routes/youtubeLiveRoutes");
 const forwarderRoutes = require("./routes/forwarderRoutes");
-
+const activityLogRoutes = require("./routes/activityLogRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const systemRoutes = require("./routes/systemRoutes");
 
 /* =========================================================
    INITIALIZE EXPRESS
@@ -81,6 +84,7 @@ app.get("/api/status", (req, res) => {
     application: "MultiStream",
     status: "online",
     backend: "Node.js + Express",
+    startedAt: global.multistreamServerStartedAt,
     timestamp: new Date().toISOString(),
   });
 });
@@ -96,6 +100,7 @@ app.use("/api/auth", authRoutes);
    ========================================================= */
 
 app.use("/api/destinations", destinationRoutes);
+
 /* =========================================================
    SETTINGS ROUTES
    ========================================================= */
@@ -119,6 +124,24 @@ app.use("/api/youtube/live", youtubeLiveRoutes);
    ========================================================= */
 
 app.use("/api/forwarders", forwarderRoutes);
+
+/* =========================================================
+   ACTIVITY LOG ROUTES
+   ========================================================= */
+
+app.use("/api/activity-logs", activityLogRoutes);
+
+/* =========================================================
+   NOTIFICATION ROUTES
+   ========================================================= */
+
+app.use("/api/notifications", notificationRoutes);
+
+/* =========================================================
+   SYSTEM ROUTES
+   ========================================================= */
+
+app.use("/api/system", systemRoutes);
 
 /* =========================================================
    EXPORT APPLICATION

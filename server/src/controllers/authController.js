@@ -230,6 +230,92 @@ const getCurrentUser = (req, res) => {
     },
   });
 };
+/* =========================================================
+   UPDATE PROFILE
+   ========================================================= */
+
+const updateProfile = async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    // VALIDATION
+    if (
+      typeof name !== "string" ||
+      !name.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Name is required.",
+      });
+    }
+
+    const trimmedName = name.trim();
+
+    if (trimmedName.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "Name must be at least 2 characters.",
+      });
+    }
+
+    if (trimmedName.length > 50) {
+      return res.status(400).json({
+        success: false,
+        message: "Name cannot exceed 50 characters.",
+      });
+    }
+
+    // GET AUTHENTICATED USER ID
+    const userId = req.session.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
+      });
+    }
+
+    // UPDATE USER IN JSON STORAGE
+    const updatedUser =
+      authService.updateUserProfile({
+        id: userId,
+        name: trimmedName,
+      });
+
+    // UPDATE CURRENT SESSION
+    req.session.user = updatedUser;
+
+    // SAVE SESSION
+    req.session.save((error) => {
+      if (error) {
+        console.error(
+          "Update Profile Session Error:",
+          error
+        );
+
+        return res.status(500).json({
+          success: false,
+          message: "Failed to update session.",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Profile updated successfully.",
+        data: {
+          user: updatedUser,
+        },
+      });
+    });
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 /* =========================================================
    LOGOUT
@@ -410,6 +496,7 @@ module.exports = {
   register,
   login,
   getCurrentUser,
+  updateProfile,
   logout,
   forgotPassword,
   resetPassword,

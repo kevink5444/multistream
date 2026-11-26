@@ -1,0 +1,11 @@
+{
+  "lastStartedAt": "2026-11-26T16:10:10.143Z",
+  "serverSignature": {
+    "hostname": "DESKTOP-KA9I2HR",
+    "platform": "win32",
+    "operatingSystem": "Windows_NT",
+    "architecture": "x64",
+    "nodeVersion": "v26.13.0",
+    "environment": "development"
+  }
+}

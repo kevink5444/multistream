@@ -1,11 +1,9 @@
 
 import {
-  Activity,
   BarChart3,
   ChevronLeft,
   ChevronRight,
   CircleHelp,
-  Cpu,
   LayoutDashboard,
   Radio,
   Settings,
@@ -34,11 +32,6 @@ const navigationItems = [
         name: "Destinations",
         icon: Radio,
         id: "destinations",
-      },
-      {
-        name: "Live Sessions",
-        icon: Activity,
-        id: "sessions",
       },
     ],
   },
@@ -202,12 +195,6 @@ function Sidebar({
                           {item.name}
                         </span>
                       )}
-
-                      {!isCollapsed && item.id === "sessions" && (
-                        <span className="rounded-md bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">
-                          LIVE
-                        </span>
-                      )}
                     </button>
                   );
                 })}
@@ -215,45 +202,6 @@ function Sidebar({
             </div>
           ))}
         </div>
-
-        {/* CPU Efficiency */}
-        {!isCollapsed && (
-          <div className="mx-3 mb-4 rounded-xl border border-violet-500/10 bg-gradient-to-br from-violet-500/[0.08] to-blue-500/[0.04] p-3.5">
-            <div className="mb-3 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
-                <Cpu className="h-4 w-4 text-violet-400" />
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold text-white">
-                  CPU Efficiency
-                </p>
-
-                <p className="text-[10px] text-gray-500">
-                  Single encoding engine
-                </p>
-              </div>
-            </div>
-
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[11px] text-gray-400">
-                Encoding mode
-              </span>
-
-              <span className="text-[11px] font-medium text-emerald-400">
-                CPU Saver
-              </span>
-            </div>
-
-            <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-              <div className="h-full w-[85%] rounded-full bg-gradient-to-r from-violet-500 to-blue-500" />
-            </div>
-
-            <p className="mt-2 text-[10px] leading-relaxed text-gray-500">
-              Encode once, distribute to multiple destinations.
-            </p>
-          </div>
-        )}
 
         {/* System Status */}
         <div className="border-t border-white/[0.06] px-3 py-4">

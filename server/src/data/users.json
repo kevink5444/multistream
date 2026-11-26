@@ -11,13 +11,14 @@
   },
   {
     "id": "admin_1795333246880",
-    "name": "Multistream Administrator",
+    "name": "Multistream",
     "email": "admin@example.com",
     "passwordHash": "$2b$12$lNYJx2e93ajy5ETxEiihtuVJJs/4l12LtqVLhwZF5ol5m6zTMFb1y",
     "role": "admin",
     "channelLimit": null,
     "status": "active",
-    "createdAt": "2026-11-22T07:40:46.881Z"
+    "createdAt": "2026-11-22T07:40:46.881Z",
+    "updatedAt": "2026-11-26T16:19:20.121Z"
   },
   {
     "id": "user_1795595260035",
@@ -30,5 +31,16 @@
     "createdAt": "2026-11-25T08:27:40.035Z",
     "resetPasswordToken": "50ca6ebaa3b4c1ccbb537c8197958ee8a559cd0cf9f2f32bbcce8e141eaa6998",
     "resetPasswordExpires": 1795602535341
+  },
+  {
+    "id": "user_1795709223413",
+    "name": "adit kurniawan",
+    "email": "adit1@example.com",
+    "passwordHash": "$2b$12$CdxfoLJFcTlM/b7DUO7x/OFM6nYwweZEySQ2PtZsY..9PCj6DYZ4K",
+    "role": "user",
+    "channelLimit": 2,
+    "status": "active",
+    "createdAt": "2026-11-26T16:07:03.413Z",
+    "updatedAt": "2026-11-26T16:19:50.204Z"
   }
 ]

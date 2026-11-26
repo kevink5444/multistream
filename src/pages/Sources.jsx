@@ -1,4 +1,4 @@
-
+import { api } from "../services/api";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -20,6 +20,37 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+  // =====================================================
+  // ACTIVITY LOG HELPER  <-- TARUH DI SINI
+  // =====================================================
+
+  async function logSourceActivity({
+    type = "info",
+    title,
+    description,
+    source = null,
+    metadata = {},
+  }) {
+    try {
+      await api.createActivityLog({
+        type,
+        category: "source",
+        title,
+        description,
+        destination: source?.name || "Source Manager",
+        metadata: {
+          sourceId: source?.id ?? null,
+          sourceType: source?.type ?? null,
+          ...metadata,
+        },
+      });
+    } catch (error) {
+      console.error(
+        "Failed to create source activity log:",
+        error
+      );
+    }
+  }
 /* =========================================================
    SOURCE TYPES
 ========================================================= */
@@ -341,6 +372,7 @@ function SourceSettingsModal({
   onSave,
   onStart,
   onStop,
+  onLog,
 }) {
   const [devices, setDevices] = useState([]);
   const [deviceId, setDeviceId] = useState(
@@ -426,98 +458,119 @@ function SourceSettingsModal({
 }
 
   async function handlePreview() {
-    setError("");
+  setError("");
 
-    try {
-      if (source.type === "camera") {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            deviceId: deviceId
-              ? { exact: deviceId }
-              : undefined,
-          },
-          audio: false,
-        });
+  try {
+    if (source.type === "camera") {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          deviceId: deviceId
+            ? { exact: deviceId }
+            : undefined,
+        },
+        audio: false,
+      });
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-
-        onStart(source.id, stream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
       }
 
-      if (source.type === "audio") {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            deviceId: deviceId
-              ? { exact: deviceId }
-              : undefined,
-          },
-          video: false,
-        });
-
-        if (audioRef.current) {
-          audioRef.current.srcObject = stream;
-        }
-
-        onStart(source.id, stream);
-      }
-
-      if (source.type === "video") {
-        if (!file) {
-          throw new Error("Please select a video file first.");
-        }
-
-        if (videoRef.current) {
-          videoRef.current.src = URL.createObjectURL(file);
-          await videoRef.current.play();
-        }
-
-        onStart(source.id, null);
-      }
-
-      if (source.type === "rtmp") {
-        if (!rtmpUrl.trim()) {
-          throw new Error("Please enter an RTMP URL.");
-        }
-
-        handleSave();
-
-        setError(
-          "RTMP configuration saved. RTMP ingestion is not yet connected to the media engine."
-        );
-      }
-    } catch (err) {
-      setError(err.message || "Unable to start source.");
+      onStart(source.id, stream);
     }
+
+    if (source.type === "audio") {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: deviceId
+            ? { exact: deviceId }
+            : undefined,
+        },
+        video: false,
+      });
+
+      if (audioRef.current) {
+        audioRef.current.srcObject = stream;
+      }
+
+      onStart(source.id, stream);
+    }
+
+    if (source.type === "video") {
+      if (!file) {
+        throw new Error("Please select a video file first.");
+      }
+
+      if (videoRef.current) {
+        videoRef.current.src = URL.createObjectURL(file);
+        await videoRef.current.play();
+      }
+
+      onStart(source.id, null);
+    }
+
+    if (source.type === "rtmp") {
+      if (!rtmpUrl.trim()) {
+        throw new Error("Please enter an RTMP URL.");
+      }
+
+      handleSave();
+
+      setError(
+        "RTMP configuration saved. RTMP ingestion is not yet connected to the media engine."
+      );
+    }
+  } catch (err) {
+    const errorMessage =
+      err.message || "Unable to start source.";
+
+    setError(errorMessage);
+
+    onLog?.({
+      type: "error",
+      title: "Source Preview Failed",
+      description: `${source.name}: ${errorMessage}`,
+      source,
+      metadata: {
+        action: "preview_failed",
+        errorName: err.name || "UnknownError",
+      },
+    });
   }
+}
 
   function handleStopPreview() {
-    if (videoRef.current) {
-      if (videoRef.current.srcObject) {
-        videoRef.current.srcObject
-          .getTracks()
-          .forEach((track) => track.stop());
+  // Stop seluruh track video/audio
+  const videoStream = videoRef.current?.srcObject;
 
-        videoRef.current.srcObject = null;
-      }
+  if (videoStream) {
+    videoStream.getTracks().forEach((track) => {
+      track.stop();
+    });
 
-      videoRef.current.pause();
-      videoRef.current.removeAttribute("src");
-      videoRef.current.load();
-    }
-
-    if (audioRef.current?.srcObject) {
-      audioRef.current.srcObject
-        .getTracks()
-        .forEach((track) => track.stop());
-
-      audioRef.current.srcObject = null;
-    }
-
-    onStop(source.id);
+    videoRef.current.srcObject = null;
   }
 
+  // Bersihkan preview video
+  if (videoRef.current) {
+    videoRef.current.pause();
+    videoRef.current.removeAttribute("src");
+    videoRef.current.load();
+  }
+
+  // Stop audio stream
+  const audioStream = audioRef.current?.srcObject;
+
+  if (audioStream) {
+    audioStream.getTracks().forEach((track) => {
+      track.stop();
+    });
+
+    audioRef.current.srcObject = null;
+  }
+
+  // Update status Source di parent
+  onStop(source.id);
+}
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
 
@@ -772,6 +825,7 @@ function SourceSettingsModal({
 
     </div>
   );
+  
 }
 
 /* =========================================================
@@ -806,6 +860,8 @@ const [sources, setSources] = useState(() => {
 
   const streamsRef = useRef({});
   const autoReconnectAttemptedRef = useRef(false);
+  const deviceChangeHandlersRef = useRef({});
+  const disconnectCheckersRef = useRef({});
   const activeSources = sources.filter(
     (source) => source.status === "active"
   );
@@ -825,71 +881,323 @@ const [sources, setSources] = useState(() => {
   ===================================================== */
 
   function handleAddSource(newSource) {
-    setSources((previous) => [
-      ...previous,
-      newSource,
-    ]);
-  }
+  setSources((previous) => [
+    ...previous,
+    newSource,
+  ]);
+
+  logSourceActivity({
+    type: "success",
+    title: "Source Added",
+    description: `${newSource.name} was added to the source manager.`,
+    source: newSource,
+    metadata: {
+      action: "source_added",
+    },
+  });
+}
 
   /* =====================================================
      SAVE SETTINGS
   ===================================================== */
 
   function handleSaveSettings(sourceId, settings) {
-    setSources((previous) =>
-      previous.map((source) =>
-        source.id === sourceId
-          ? {
-              ...source,
-              settings,
-              device: settings.device,
-            }
-          : source
-      )
-    );
+  const source = sources.find(
+    (item) => item.id === sourceId
+  );
 
-    setSelectedSource((previous) =>
-      previous
+  setSources((previous) =>
+    previous.map((item) =>
+      item.id === sourceId
         ? {
-            ...previous,
+            ...item,
             settings,
             device: settings.device,
           }
-        : null
-    );
-  }
+        : item
+    )
+  );
 
+  setSelectedSource((previous) =>
+    previous && previous.id === sourceId
+      ? {
+            ...previous,
+            settings,
+            device: settings.device,
+        }
+      : previous
+  );
+
+  logSourceActivity({
+    type: "info",
+    title: "Source Settings Updated",
+    description: `Settings for ${source?.name || "source"} were updated.`,
+    source,
+    metadata: {
+      action: "settings_updated",
+      device: settings.device,
+    },
+  });
+}
   /* =====================================================
      START SOURCE
   ===================================================== */
 
-  function handleStartSource(sourceId, stream) {
-    if (stream) {
-      streamsRef.current[sourceId] = stream;
+ /* =====================================================
+   START SOURCE
+===================================================== */
+
+/* =====================================================
+   START SOURCE + DEVICE DISCONNECT DETECTION
+===================================================== */
+
+function handleStartSource(sourceId, stream) {
+  const source = sources.find(
+    (item) => item.id === sourceId
+  );
+
+  if (stream) {
+    streamsRef.current[sourceId] = stream;
+
+    // Bersihkan listener dan checker sebelumnya
+    if (deviceChangeHandlersRef.current[sourceId]) {
+      navigator.mediaDevices?.removeEventListener(
+        "devicechange",
+        deviceChangeHandlersRef.current[sourceId]
+      );
     }
 
-    setSources((previous) =>
-      previous.map((source) =>
-        source.id === sourceId
+    if (disconnectCheckersRef.current[sourceId]) {
+      clearInterval(
+        disconnectCheckersRef.current[sourceId]
+      );
+    }
+
+    let disconnected = false;
+
+    const tracks = stream.getTracks();
+
+    const handleDeviceDisconnected = (track) => {
+      // Cegah log ganda
+      if (disconnected) return;
+
+      // Pastikan stream yang diperiksa adalah stream aktif
+      if (streamsRef.current[sourceId] !== stream) {
+        return;
+      }
+
+      disconnected = true;
+
+      console.warn(
+        "DEVICE DISCONNECTED DETECTED",
+        {
+          sourceId,
+          trackKind: track?.kind,
+          trackLabel: track?.label,
+          readyState: track?.readyState,
+        }
+      );
+
+      // Bersihkan checker
+      if (disconnectCheckersRef.current[sourceId]) {
+        clearInterval(
+          disconnectCheckersRef.current[sourceId]
+        );
+
+        delete disconnectCheckersRef.current[sourceId];
+      }
+
+      // Bersihkan listener devicechange
+      if (deviceChangeHandlersRef.current[sourceId]) {
+        navigator.mediaDevices?.removeEventListener(
+          "devicechange",
+          deviceChangeHandlersRef.current[sourceId]
+        );
+
+        delete deviceChangeHandlersRef.current[sourceId];
+      }
+
+      // Stop track lain yang masih aktif
+      tracks.forEach((currentTrack) => {
+        if (currentTrack.readyState !== "ended") {
+          currentTrack.stop();
+        }
+      });
+
+      // Hapus stream aktif
+      delete streamsRef.current[sourceId];
+
+      // Update status Source
+      setSources((previous) =>
+        previous.map((item) =>
+          item.id === sourceId
+            ? {
+                ...item,
+                status: "inactive",
+                wasActive: false,
+              }
+            : item
+        )
+      );
+
+      // Update selected Source
+      setSelectedSource((previous) =>
+        previous && previous.id === sourceId
           ? {
-              ...source,
-              status: "active",
-              wasActive: true,
+              ...previous,
+              status: "inactive",
+              wasActive: false,
             }
-          : source
-      )
+          : previous
+      );
+
+      // Activity Log
+      logSourceActivity({
+        type: "warning",
+        title: "Source Device Disconnected",
+        description: `${source?.name || "Source"} device connection ended unexpectedly.`,
+        source,
+        metadata: {
+          action: "device_disconnected",
+          trackKind: track?.kind || "unknown",
+        },
+      });
+    };
+
+    // ================================================
+    // 1. TRACK ENDED EVENT
+    // ================================================
+
+    tracks.forEach((track) => {
+      track.addEventListener("ended", () => {
+        handleDeviceDisconnected(track);
+      });
+    });
+
+    // ================================================
+    // 2. DEVICE CHANGE EVENT
+    // ================================================
+
+    const checkDeviceConnection = async () => {
+      if (disconnected) return;
+
+      if (streamsRef.current[sourceId] !== stream) {
+        return;
+      }
+
+      try {
+        // Periksa track
+        const endedTrack = tracks.find(
+          (track) => track.readyState === "ended"
+        );
+
+        if (endedTrack) {
+          handleDeviceDisconnected(endedTrack);
+          return;
+        }
+
+        // Periksa device fisik
+        const availableDevices =
+          await navigator.mediaDevices.enumerateDevices();
+
+        for (const track of tracks) {
+          const activeDeviceId =
+            track.getSettings().deviceId;
+
+          if (!activeDeviceId) continue;
+
+          const deviceExists = availableDevices.some(
+            (device) =>
+              device.deviceId === activeDeviceId
+          );
+
+          if (!deviceExists) {
+            handleDeviceDisconnected(track);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Device connection check failed:",
+          error
+        );
+      }
+    };
+
+    const deviceChangeHandler = () => {
+      console.log("DEVICE CHANGE EVENT DETECTED");
+
+      checkDeviceConnection();
+    };
+
+    navigator.mediaDevices?.addEventListener(
+      "devicechange",
+      deviceChangeHandler
     );
 
-    setSelectedSource((previous) =>
-      previous
+    deviceChangeHandlersRef.current[sourceId] =
+      deviceChangeHandler;
+
+    // ================================================
+    // 3. PERIODIC DEVICE CHECK
+    // ================================================
+
+    disconnectCheckersRef.current[sourceId] =
+      setInterval(checkDeviceConnection, 2000);
+
+    // Diagnostic
+    console.log("SOURCE DEVICE MONITOR STARTED", {
+      sourceId,
+      sourceName: source?.name,
+      tracks: tracks.map((track) => ({
+        kind: track.kind,
+        label: track.label,
+        readyState: track.readyState,
+        deviceId: track.getSettings().deviceId,
+      })),
+    });
+  }
+
+  // ================================================
+  // UPDATE SOURCE STATUS
+  // ================================================
+
+  setSources((previous) =>
+    previous.map((item) =>
+      item.id === sourceId
         ? {
-            ...previous,
+            ...item,
             status: "active",
             wasActive: true,
           }
-        : null
-    );
-  }
+        : item
+    )
+  );
+
+  setSelectedSource((previous) =>
+    previous && previous.id === sourceId
+      ? {
+          ...previous,
+          status: "active",
+          wasActive: true,
+        }
+      : previous
+  );
+
+  // ================================================
+  // ACTIVITY LOG PREVIEW STARTED
+  // ================================================
+
+  logSourceActivity({
+    type: "success",
+    title: "Source Preview Started",
+    description: `${source?.name || "Source"} preview started successfully.`,
+    source,
+    metadata: {
+      action: "preview_started",
+    },
+  });
+}
   /* =====================================================
    AUTO RECONNECT SOURCES
 ===================================================== */
@@ -932,46 +1240,93 @@ async function handleAutoReconnect(source) {
     handleStartSource(source.id, stream);
 
   } catch (error) {
-    console.error(
-      `Auto reconnect failed for ${source.name}:`,
-      error
-    );
-  }
+  console.error(
+    `Auto reconnect failed for ${source.name}:`,
+    error
+  );
+
+  logSourceActivity({
+    type: "warning",
+    title: "Source Auto-Reconnect Failed",
+    description: `Unable to reconnect ${source.name}: ${error.message}`,
+    source,
+    metadata: {
+      action: "auto_reconnect_failed",
+      errorName: error.name || "UnknownError",
+    },
+  });
+}
 }
   /* =====================================================
      STOP SOURCE
   ===================================================== */
 
-  function handleStopSource(sourceId) {
-    const stream = streamsRef.current[sourceId];
+  function handleStopSource(sourceId, shouldLog = true) {
+  const source = sources.find(
+    (item) => item.id === sourceId
+  );
 
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      delete streamsRef.current[sourceId];
-    }
+  const stream = streamsRef.current[sourceId];
 
-    setSources((previous) =>
-      previous.map((source) =>
-        source.id === sourceId
-          ? {
-              ...source,
+  if (stream) {
+  // Hapus listener devicechange
+  if (deviceChangeHandlersRef.current[sourceId]) {
+    navigator.mediaDevices?.removeEventListener(
+      "devicechange",
+      deviceChangeHandlersRef.current[sourceId]
+    );
+
+    
+    if (disconnectCheckersRef.current[sourceId]) {
+  clearInterval(
+    disconnectCheckersRef.current[sourceId]
+  );
+  delete deviceChangeHandlersRef.current[sourceId];
+}
+  }
+
+  // Stop semua track
+  stream.getTracks().forEach((track) => {
+    track.stop();
+  });
+
+  // Hapus stream
+  delete streamsRef.current[sourceId];
+}
+  setSources((previous) =>
+    previous.map((item) =>
+      item.id === sourceId
+        ? {
+              ...item,
               status: "inactive",
               wasActive: false,
-            }
-          : source
-      )
-    );
-
-    setSelectedSource((previous) =>
-      previous
-        ? {
-            ...previous,
-            status: "inactive",
-            wasActive: false,
           }
-        : null
-    );
+        : item
+    )
+  );
+
+  setSelectedSource((previous) =>
+    previous && previous.id === sourceId
+      ? {
+              ...previous,
+              status: "inactive",
+              wasActive: false,
+          }
+        : previous
+  );
+
+  if (shouldLog) {
+    logSourceActivity({
+      type: "info",
+      title: "Source Preview Stopped",
+      description: `${source?.name || "Source"} preview was stopped.`,
+      source,
+      metadata: {
+        action: "preview_stopped",
+      },
+    });
   }
+}
 
   /* =====================================================
      TOGGLE SOURCE
@@ -997,16 +1352,31 @@ async function handleAutoReconnect(source) {
   ===================================================== */
 
   function handleDeleteSource(sourceId) {
-    handleStopSource(sourceId);
+  const source = sources.find(
+    (item) => item.id === sourceId
+  );
 
-    setSources((previous) =>
-      previous.filter((source) => source.id !== sourceId)
-    );
+  // Stop Source tanpa membuat log Stop tambahan
+  handleStopSource(sourceId, false);
 
-    if (selectedSource?.id === sourceId) {
-      setSelectedSource(null);
-    }
+  setSources((previous) =>
+    previous.filter((item) => item.id !== sourceId)
+  );
+
+  if (selectedSource?.id === sourceId) {
+    setSelectedSource(null);
   }
+
+  logSourceActivity({
+    type: "warning",
+    title: "Source Deleted",
+    description: `${source?.name || "Source"} was removed from the source manager.`,
+    source,
+    metadata: {
+      action: "source_deleted",
+    },
+  });
+}
 
 /* =====================================================
    SAVE SOURCES TO LOCAL STORAGE
@@ -1359,6 +1729,7 @@ useEffect(() => {
           onSave={handleSaveSettings}
           onStart={handleStartSource}
           onStop={handleStopSource}
+          onLog={logSourceActivity}
         />
       )}
 

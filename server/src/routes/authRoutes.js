@@ -114,7 +114,16 @@ router.get(
   requireAuth,
   authController.getCurrentUser
 );
+/* =========================================================
+   UPDATE PROFILE
+   PUT /api/auth/profile
+   ========================================================= */
 
+router.put(
+  "/profile",
+  requireAuth,
+  authController.updateProfile
+);
 /* =========================================================
    LOGOUT
    POST /api/auth/logout

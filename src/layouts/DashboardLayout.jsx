@@ -4,11 +4,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-
+import Profile from "../pages/Profile";
 import Dashboard from "../pages/Dashboard";
 import Sources from "../pages/Sources";
 import Destinations from "../pages/Destinations";
-import LiveSessions from "../pages/LiveSessions";
 import Analytics from "../pages/Analytics";
 import ActivityLogs from "../pages/ActivityLogs";
 import Settings from "../pages/Settings";
@@ -34,11 +33,6 @@ const pageConfig = {
     description: "Manage your streaming platforms.",
   },
 
-  sessions: {
-    title: "Streaming Sessions",
-    description: "View and manage your streaming sessions.",
-  },
-
   analytics: {
     title: "Analytics",
     description: "Analyze your streaming performance.",
@@ -58,13 +52,21 @@ const pageConfig = {
     title: "Help Center",
     description: "Get help using MultiStream.",
   },
+  profile: {
+  title: "My Profile",
+  description: "Manage your account information.",
+},
 };
 
 // =====================================
 // DASHBOARD LAYOUT
 // =====================================
 
-function DashboardLayout({ user, onLogout }) {
+function DashboardLayout({
+  user,
+  onLogout,
+  onProfileUpdated,
+}) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -130,9 +132,6 @@ function DashboardLayout({ user, onLogout }) {
       case "destinations":
         return <Destinations />;
 
-      case "sessions":
-        return <LiveSessions />;
-
       case "analytics":
         return <Analytics />;
 
@@ -147,6 +146,13 @@ function DashboardLayout({ user, onLogout }) {
 
       default:
         return <Dashboard />;
+      case "profile":
+      return (
+    <Profile
+      user={user}
+      onProfileUpdated={onProfileUpdated}
+    />
+  );
     }
   };
 
@@ -185,6 +191,7 @@ function DashboardLayout({ user, onLogout }) {
           onOpenMobileSidebar={handleOpenMobileSidebar}
           user={user}
           onLogout={onLogout}
+          onNavigateProfile={() => handleNavigate("profile")}
         />
 
         {/* CONTENT */}

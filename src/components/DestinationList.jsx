@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Radio,
@@ -14,6 +14,8 @@ import {
   X,
   Save,
   Trash2,
+  Pencil,
+  Loader2,
 } from "lucide-react";
 
 import {
@@ -22,89 +24,36 @@ import {
   FaFacebook,
 } from "react-icons/fa";
 
-/* =========================================================
-   INITIAL DESTINATION DATA
-   ========================================================= */
-
-const initialDestinations = [
-  {
-    id: 1,
-    name: "YouTube Live",
-    platform: "YouTube",
-    account: "Kevin Gaming",
-    status: "connected",
-    bitrate: "6,000 Kbps",
-    resolution: "1080p",
-    fps: "60 FPS",
-    icon: FaYoutube,
-    iconColor: "text-red-500",
-    backgroundColor: "bg-red-500/10",
-  },
-  {
-    id: 2,
-    name: "Twitch",
-    platform: "Twitch",
-    account: "kevin_stream",
-    status: "connected",
-    bitrate: "6,000 Kbps",
-    resolution: "1080p",
-    fps: "60 FPS",
-    icon: FaTwitch,
-    iconColor: "text-purple-500",
-    backgroundColor: "bg-purple-500/10",
-  },
-  {
-    id: 3,
-    name: "Facebook Live",
-    platform: "Facebook",
-    account: "Kevin Gaming",
-    status: "connecting",
-    bitrate: "6,000 Kbps",
-    resolution: "1080p",
-    fps: "60 FPS",
-    icon: FaFacebook,
-    iconColor: "text-blue-500",
-    backgroundColor: "bg-blue-500/10",
-  },
-  {
-    id: 4,
-    name: "Custom RTMP",
-    platform: "RTMP",
-    account: "Custom Server",
-    status: "disconnected",
-    bitrate: "-",
-    resolution: "-",
-    fps: "-",
-    icon: Radio,
-    iconColor: "text-slate-400",
-    backgroundColor: "bg-slate-500/10",
-  },
-];
+import { api } from "../services/api";
 
 /* =========================================================
    PLATFORM CONFIGURATION
    ========================================================= */
 
 const platformConfig = {
-  YouTube: {
+  youtube: {
+    label: "YouTube",
     icon: FaYoutube,
     iconColor: "text-red-500",
     backgroundColor: "bg-red-500/10",
   },
 
-  Twitch: {
+  twitch: {
+    label: "Twitch",
     icon: FaTwitch,
     iconColor: "text-purple-500",
     backgroundColor: "bg-purple-500/10",
   },
 
-  Facebook: {
+  facebook: {
+    label: "Facebook",
     icon: FaFacebook,
     iconColor: "text-blue-500",
     backgroundColor: "bg-blue-500/10",
   },
 
-  RTMP: {
+  rtmp: {
+    label: "Custom RTMP",
     icon: Radio,
     iconColor: "text-slate-400",
     backgroundColor: "bg-slate-500/10",
@@ -116,11 +65,39 @@ const platformConfig = {
    ========================================================= */
 
 const destinationStatusConfig = {
-  connected: {
-    label: "Connected",
+  disabled: {
+    label: "Disabled",
+    icon: AlertCircle,
+    className:
+      "bg-slate-500/10 text-slate-400 border-slate-500/20",
+  },
+
+  pending: {
+    label: "Ready",
     icon: CheckCircle2,
     className:
       "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  },
+
+  ready: {
+    label: "Ready",
+    icon: CheckCircle2,
+    className:
+      "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  },
+
+  configured: {
+    label: "Configured",
+    icon: CheckCircle2,
+    className:
+      "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  },
+
+  needs_configuration: {
+    label: "Needs Configuration",
+    icon: AlertCircle,
+    className:
+      "bg-amber-500/10 text-amber-400 border-amber-500/20",
   },
 
   connecting: {
@@ -130,22 +107,96 @@ const destinationStatusConfig = {
       "bg-amber-500/10 text-amber-400 border-amber-500/20",
   },
 
-  disconnected: {
-    label: "Disconnected",
+  connected: {
+    label: "Connected",
+    icon: CheckCircle2,
+    className:
+      "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  },
+
+  failed: {
+    label: "Failed",
     icon: AlertCircle,
     className:
-      "bg-slate-500/10 text-slate-400 border-slate-500/20",
+      "bg-red-500/10 text-red-400 border-red-500/20",
   },
 };
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+function getPlatformConfig(platform) {
+  const normalizedPlatform = String(platform || "")
+    .toLowerCase()
+    .trim();
+
+  return (
+    platformConfig[normalizedPlatform] ||
+    platformConfig.rtmp
+  );
+}
+
+function getDestinationStatus(destination) {
+  const status = String(destination.status || "")
+    .toLowerCase()
+    .trim();
+
+  if (status === "disabled") {
+    return "disabled";
+  }
+
+  if (status === "connected") {
+    return "connected";
+  }
+
+  if (status === "connecting") {
+    return "connecting";
+  }
+
+  if (status === "reconnecting") {
+    return "connecting";
+  }
+
+  if (status === "failed") {
+    return "failed";
+  }
+
+  if (status === "ready") {
+    return "ready";
+  }
+
+  if (status === "configured") {
+    return "configured";
+  }
+
+  if (status === "pending") {
+    return "pending";
+  }
+
+  if (!destination.streamUrl || !destination.streamKey) {
+    return "needs_configuration";
+  }
+
+  return "ready";
+}
+
+function getDestinationDisplayStatus(destination) {
+  const status = getDestinationStatus(destination);
+
+  return (
+    destinationStatusConfig[status] ||
+    destinationStatusConfig.needs_configuration
+  );
+}
 
 /* =========================================================
    STATUS BADGE
    ========================================================= */
 
-function DestinationStatusBadge({ status }) {
+function DestinationStatusBadge({ destination }) {
   const statusConfig =
-    destinationStatusConfig[status] ??
-    destinationStatusConfig.disconnected;
+    getDestinationDisplayStatus(destination);
 
   const StatusIcon = statusConfig.icon;
 
@@ -161,18 +212,305 @@ function DestinationStatusBadge({ status }) {
 }
 
 /* =========================================================
+   DESTINATION FORM MODAL
+   ========================================================= */
+
+function DestinationModal({
+  destination,
+  onClose,
+  onSave,
+  loading,
+}) {
+  const isEditing = Boolean(destination);
+
+  const [name, setName] = useState(
+    destination?.name || ""
+  );
+
+  const [platform, setPlatform] = useState(
+    destination?.platform || "youtube"
+  );
+
+  const [streamUrl, setStreamUrl] = useState(
+    destination?.streamUrl || ""
+  );
+
+  const [streamKey, setStreamKey] = useState("");
+
+  const [showStreamKey, setShowStreamKey] =
+    useState(false);
+
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setError("");
+
+    if (!name.trim()) {
+      setError("Destination name is required.");
+      return;
+    }
+
+    if (!streamUrl.trim()) {
+      setError("Server URL is required.");
+      return;
+    }
+
+    if (!isEditing && !streamKey.trim()) {
+      setError("Stream Key is required.");
+      return;
+    }
+
+    const payload = {
+      name: name.trim(),
+      platform,
+      streamUrl: streamUrl.trim(),
+    };
+
+    /*
+     * When editing:
+     * Stream Key is optional.
+     * Empty input means preserve the existing key.
+     */
+    if (streamKey.trim()) {
+      payload.streamKey = streamKey.trim();
+    }
+
+    /*
+     * New destination status
+     */
+    if (!isEditing) {
+      payload.status = "pending";
+    }
+
+    try {
+      await onSave(payload);
+    } catch (err) {
+      setError(err.message || "Failed to save destination.");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#15151e] shadow-2xl">
+
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-white/5 p-5">
+
+          <div>
+            <h2 className="text-base font-semibold text-white">
+              {isEditing
+                ? "Edit Destination"
+                : "Add Destination"}
+            </h2>
+
+            <p className="mt-1 text-xs text-slate-500">
+              {isEditing
+                ? "Update your destination configuration"
+                : "Add a new streaming destination"}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-white/5 hover:text-white"
+          >
+            <X size={18} />
+          </button>
+
+        </div>
+
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 p-5"
+        >
+
+          {/* Destination Name */}
+          <div>
+            <label className="mb-2 block text-xs font-medium text-slate-400">
+              Destination Name
+            </label>
+
+            <input
+              type="text"
+              value={name}
+              onChange={(event) =>
+                setName(event.target.value)
+              }
+              placeholder="My YouTube Channel"
+              disabled={loading}
+              className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
+            />
+          </div>
+
+          {/* Platform */}
+          <div>
+            <label className="mb-2 block text-xs font-medium text-slate-400">
+              Platform
+            </label>
+
+            <select
+              value={platform}
+              onChange={(event) =>
+                setPlatform(event.target.value)
+              }
+              disabled={loading}
+              className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none focus:border-violet-500/50"
+            >
+              <option value="youtube">YouTube</option>
+              <option value="twitch">Twitch</option>
+              <option value="facebook">Facebook</option>
+              <option value="rtmp">Custom RTMP</option>
+            </select>
+          </div>
+
+          {/* Server URL */}
+          <div>
+            <label className="mb-2 block text-xs font-medium text-slate-400">
+              Server URL
+            </label>
+
+            <input
+              type="text"
+              value={streamUrl}
+              onChange={(event) =>
+                setStreamUrl(event.target.value)
+              }
+              placeholder="rtmp://server.example.com/live"
+              disabled={loading}
+              className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
+            />
+          </div>
+
+          {/* Stream Key */}
+          <div>
+            <label className="mb-2 block text-xs font-medium text-slate-400">
+              Stream Key
+            </label>
+
+            <div className="relative">
+              <input
+                type={showStreamKey ? "text" : "password"}
+                value={streamKey}
+                onChange={(event) =>
+                  setStreamKey(event.target.value)
+                }
+                placeholder={
+                  isEditing
+                    ? "Leave blank to keep existing Stream Key"
+                    : "Enter Stream Key"
+                }
+                disabled={loading}
+                className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 pr-12 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
+              />
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowStreamKey((previous) => !previous)
+                }
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-white"
+                title={
+                  showStreamKey
+                    ? "Hide Stream Key"
+                    : "Show Stream Key"
+                }
+              >
+                <ExternalLink size={15} />
+              </button>
+            </div>
+
+            <p className="mt-1 text-[10px] text-slate-500">
+              {isEditing
+                ? "Stream Key is hidden. Leave this field empty to keep the current key."
+                : "Stream Key will be stored securely in your backend configuration."}
+            </p>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
+              <p className="text-xs text-red-400">
+                {error}
+              </p>
+            </div>
+          )}
+
+          {/* Notice */}
+          <div className="rounded-lg border border-violet-500/10 bg-violet-500/5 p-3">
+            <p className="text-xs leading-relaxed text-slate-400">
+              Destination configuration is saved to the MultiStream backend.
+              Streaming connection status is monitored separately by the streaming engine.
+            </p>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-2 pt-2">
+
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-xs font-medium text-slate-300 transition hover:bg-white/[0.07]"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <Loader2
+                    size={14}
+                    className="animate-spin"
+                  />
+
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={14} />
+
+                  {isEditing
+                    ? "Save Changes"
+                    : "Add Destination"}
+                </>
+              )}
+            </button>
+
+          </div>
+
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
    DESTINATION CARD
    ========================================================= */
 
 function DestinationCard({
   destination,
-  onSettings,
-  onReconnect,
+  onEdit,
   onDelete,
 }) {
-  const DestinationIcon = destination.icon;
+  const config = getPlatformConfig(
+    destination.platform
+  );
+
+  const DestinationIcon = config.icon;
 
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const status = getDestinationStatus(destination);
 
   return (
     <div className="group rounded-xl border border-white/5 bg-[#15151e] p-4 transition-all duration-200 hover:border-white/10 hover:bg-[#191923]">
@@ -184,10 +522,10 @@ function DestinationCard({
 
           {/* Platform Icon */}
           <div
-            className={`flex h-11 w-11 items-center justify-center rounded-xl ${destination.backgroundColor}`}
+            className={`flex h-11 w-11 items-center justify-center rounded-xl ${config.backgroundColor}`}
           >
             <DestinationIcon
-              className={destination.iconColor}
+              className={config.iconColor}
               size={22}
             />
           </div>
@@ -199,18 +537,20 @@ function DestinationCard({
             </h3>
 
             <p className="mt-1 text-xs text-slate-500">
-              {destination.account}
+              {config.label}
             </p>
           </div>
 
         </div>
 
-        {/* More Options */}
+        {/* Menu */}
         <div className="relative">
 
           <button
             type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={() =>
+              setMenuOpen((previous) => !previous)
+            }
             className="rounded-lg p-1.5 text-slate-500 transition hover:bg-white/5 hover:text-white"
             aria-label={`More options for ${destination.name}`}
           >
@@ -223,31 +563,19 @@ function DestinationCard({
               <button
                 type="button"
                 onClick={() => {
-                  onSettings(destination);
+                  onEdit(destination);
                   setMenuOpen(false);
                 }}
                 className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs text-slate-300 transition hover:bg-white/5 hover:text-white"
               >
                 <Settings2 size={14} />
-                Settings
+                Edit
               </button>
 
               <button
                 type="button"
                 onClick={() => {
-                  onReconnect(destination.id);
-                  setMenuOpen(false);
-                }}
-                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs text-slate-300 transition hover:bg-white/5 hover:text-white"
-              >
-                <RefreshCw size={14} />
-                Reconnect
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onDelete(destination.id);
+                  onDelete(destination);
                   setMenuOpen(false);
                 }}
                 className="flex w-full items-center gap-2 border-t border-white/5 px-3 py-2.5 text-left text-xs text-red-400 transition hover:bg-red-500/5"
@@ -267,462 +595,67 @@ function DestinationCard({
       <div className="mt-4 flex items-center justify-between">
 
         <DestinationStatusBadge
-          status={destination.status}
+          destination={destination}
         />
 
-        {/* Live Indicator */}
-        {destination.status === "connected" && (
+        {status === "connected" && (
           <div className="flex items-center gap-1.5 text-xs text-emerald-400">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-
             Live
-          </div>
-        )}
-
-        {/* Connecting Indicator */}
-        {destination.status === "connecting" && (
-          <div className="flex items-center gap-1.5 text-xs text-amber-400">
-            <RefreshCw
-              size={12}
-              className="animate-spin"
-            />
-
-            Connecting
           </div>
         )}
 
       </div>
 
-      {/* Statistics */}
-      <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/5 pt-4">
+      {/* Destination Configuration */}
+      <div className="mt-4 space-y-3 border-t border-white/5 pt-4">
 
+        {/* Server URL */}
         <div>
           <p className="text-[10px] uppercase tracking-wider text-slate-500">
-            Bitrate
+            Server URL
           </p>
 
-          <p className="mt-1 text-xs font-medium text-slate-300">
-            {destination.bitrate}
+          <p className="mt-1 break-all rounded-lg border border-white/5 bg-black/20 px-3 py-2 text-xs text-slate-300">
+            {destination.streamUrl || "Not configured"}
           </p>
         </div>
 
+        {/* Stream Key */}
         <div>
           <p className="text-[10px] uppercase tracking-wider text-slate-500">
-            Resolution
+            Stream Key
           </p>
 
-          <p className="mt-1 text-xs font-medium text-slate-300">
-            {destination.resolution}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-[10px] uppercase tracking-wider text-slate-500">
-            Frame Rate
-          </p>
-
-          <p className="mt-1 text-xs font-medium text-slate-300">
-            {destination.fps}
+          <p className="mt-1 rounded-lg border border-white/5 bg-black/20 px-3 py-2 text-xs text-slate-300">
+            {destination.streamKey
+              ? "••••••••••••••••"
+              : "Not configured"}
           </p>
         </div>
 
       </div>
 
       {/* Actions */}
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex gap-2 border-t border-white/5 pt-4">
 
-        {/* Connected */}
-        {destination.status === "connected" && (
-          <button
-            type="button"
-            onClick={() => onSettings(destination)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2 text-xs font-medium text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
-          >
-            <Settings2 size={14} />
-
-            Settings
-          </button>
-        )}
-
-        {/* Connecting */}
-        {destination.status === "connecting" && (
-          <button
-            type="button"
-            disabled
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-amber-500/10 bg-amber-500/5 px-3 py-2 text-xs font-medium text-amber-400"
-          >
-            <Clock size={14} />
-
-            Connecting...
-          </button>
-        )}
-
-        {/* Disconnected */}
-        {destination.status === "disconnected" && (
-          <button
-            type="button"
-            onClick={() => onReconnect(destination.id)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2 text-xs font-medium text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
-          >
-            <RefreshCw size={14} />
-
-            Reconnect
-          </button>
-        )}
-
-        {/* External Link */}
         <button
           type="button"
-          onClick={() => onSettings(destination)}
-          className="flex items-center justify-center rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2 text-slate-400 transition hover:bg-white/[0.07] hover:text-white"
-          aria-label={`Open ${destination.name} settings`}
+          onClick={() => onEdit(destination)}
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2 text-xs font-medium text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
         >
-          <ExternalLink size={14} />
+          <Pencil size={14} />
+          Edit Destination
         </button>
 
-      </div>
-
-    </div>
-  );
-}
-
-/* =========================================================
-   ADD DESTINATION MODAL
-   ========================================================= */
-
-function AddDestinationModal({ onClose, onAdd }) {
-  const [platform, setPlatform] = useState("RTMP");
-  const [account, setAccount] = useState("");
-  const [customName, setCustomName] = useState("");
-  const [rtmpUrl, setRtmpUrl] = useState("");
-  const [streamKey, setStreamKey] = useState("");
-
-  const config = platformConfig[platform];
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    const newDestination = {
-      id: Date.now(),
-      name:
-        platform === "RTMP"
-          ? customName || "Custom RTMP"
-          : `${platform} Live`,
-      platform,
-      account: account || "New Account",
-      status: "disconnected",
-      bitrate: "-",
-      resolution: "-",
-      fps: "-",
-      icon: config.icon,
-      iconColor: config.iconColor,
-      backgroundColor: config.backgroundColor,
-      rtmpUrl,
-      streamKey,
-    };
-
-    onAdd(newDestination);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#15151e] shadow-2xl">
-
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-white/5 p-5">
-
-          <div>
-            <h2 className="text-base font-semibold text-white">
-              Add Destination
-            </h2>
-
-            <p className="mt-1 text-xs text-slate-500">
-              Add a new streaming platform
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-white/5 hover:text-white"
-          >
-            <X size={18} />
-          </button>
-
-        </div>
-
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 p-5"
+        <button
+          type="button"
+          onClick={() => onDelete(destination)}
+          className="flex items-center justify-center rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2 text-slate-400 transition hover:bg-red-500/5 hover:text-red-400"
+          aria-label={`Delete ${destination.name}`}
         >
-
-          {/* Platform */}
-          <div>
-            <label className="mb-2 block text-xs font-medium text-slate-400">
-              Platform
-            </label>
-
-            <select
-              value={platform}
-              onChange={(event) => setPlatform(event.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none focus:border-violet-500/50"
-            >
-              <option value="YouTube">YouTube</option>
-              <option value="Twitch">Twitch</option>
-              <option value="Facebook">Facebook</option>
-              <option value="RTMP">Custom RTMP</option>
-            </select>
-          </div>
-
-          {/* Account */}
-          <div>
-            <label className="mb-2 block text-xs font-medium text-slate-400">
-              Account Name
-            </label>
-
-            <input
-              type="text"
-              value={account}
-              onChange={(event) => setAccount(event.target.value)}
-              placeholder="Enter account name"
-              className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
-            />
-          </div>
-
-          {/* Custom RTMP Name */}
-          {platform === "RTMP" && (
-            <div>
-              <label className="mb-2 block text-xs font-medium text-slate-400">
-                Destination Name
-              </label>
-
-              <input
-                type="text"
-                value={customName}
-                onChange={(event) => setCustomName(event.target.value)}
-                placeholder="My RTMP Server"
-                className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
-              />
-            </div>
-          )}
-
-          {/* RTMP URL */}
-          <div>
-            <label className="mb-2 block text-xs font-medium text-slate-400">
-              RTMP URL
-            </label>
-
-            <input
-              type="text"
-              value={rtmpUrl}
-              onChange={(event) => setRtmpUrl(event.target.value)}
-              placeholder="rtmp://server.example.com/live"
-              className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
-            />
-          </div>
-
-          {/* Stream Key */}
-          <div>
-            <label className="mb-2 block text-xs font-medium text-slate-400">
-              Stream Key
-            </label>
-
-            <input
-              type="password"
-              value={streamKey}
-              onChange={(event) => setStreamKey(event.target.value)}
-              placeholder="Enter stream key"
-              className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
-            />
-          </div>
-
-          {/* Notice */}
-          <div className="rounded-lg border border-violet-500/10 bg-violet-500/5 p-3">
-            <p className="text-xs leading-relaxed text-slate-400">
-              Destination ini masih bersifat simulasi frontend.
-              Koneksi RTMP akan diimplementasikan saat backend
-              streaming engine tersedia.
-            </p>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-2 pt-2">
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-xs font-medium text-slate-300 transition hover:bg-white/[0.07]"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-violet-500"
-            >
-              <Plus size={14} />
-
-              Add Destination
-            </button>
-
-          </div>
-
-        </form>
-
-      </div>
-
-    </div>
-  );
-}
-
-/* =========================================================
-   DESTINATION SETTINGS MODAL
-   ========================================================= */
-
-function DestinationSettingsModal({
-  destination,
-  onClose,
-}) {
-  if (!destination) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#15151e] shadow-2xl">
-
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/5 p-5">
-
-          <div className="flex items-center gap-3">
-
-            <div
-              className={`flex h-10 w-10 items-center justify-center rounded-xl ${destination.backgroundColor}`}
-            >
-              {(() => {
-                const Icon = destination.icon;
-
-                return (
-                  <Icon
-                    size={20}
-                    className={destination.iconColor}
-                  />
-                );
-              })()}
-            </div>
-
-            <div>
-              <h2 className="text-base font-semibold text-white">
-                Destination Settings
-              </h2>
-
-              <p className="mt-1 text-xs text-slate-500">
-                {destination.name}
-              </p>
-            </div>
-
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-white/5 hover:text-white"
-          >
-            <X size={18} />
-          </button>
-
-        </div>
-
-        {/* Content */}
-        <div className="space-y-4 p-5">
-
-          <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] p-3">
-
-            <span className="text-xs text-slate-400">
-              Connection Status
-            </span>
-
-            <DestinationStatusBadge
-              status={destination.status}
-            />
-
-          </div>
-
-          <div>
-            <p className="text-xs text-slate-500">
-              Platform
-            </p>
-
-            <p className="mt-1 text-sm text-white">
-              {destination.platform}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-slate-500">
-              Account
-            </p>
-
-            <p className="mt-1 text-sm text-white">
-              {destination.account}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-
-            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
-              <p className="text-[10px] text-slate-500">
-                Bitrate
-              </p>
-
-              <p className="mt-1 text-xs font-medium text-white">
-                {destination.bitrate}
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
-              <p className="text-[10px] text-slate-500">
-                Resolution
-              </p>
-
-              <p className="mt-1 text-xs font-medium text-white">
-                {destination.resolution}
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
-              <p className="text-[10px] text-slate-500">
-                FPS
-              </p>
-
-              <p className="mt-1 text-xs font-medium text-white">
-                {destination.fps}
-              </p>
-            </div>
-
-          </div>
-
-          <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 p-3">
-            <p className="text-xs leading-relaxed text-amber-400/80">
-              Pengaturan ini masih menggunakan data simulasi.
-              Pengaturan koneksi, stream key, dan konfigurasi
-              encoder akan terhubung ke backend pada tahap berikutnya.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-violet-500"
-          >
-            <Save size={14} />
-
-            Close Settings
-          </button>
-
-        </div>
+          <Trash2 size={14} />
+        </button>
 
       </div>
 
@@ -735,94 +668,159 @@ function DestinationSettingsModal({
    ========================================================= */
 
 function DestinationList() {
-  const [destinations, setDestinations] = useState(
-    initialDestinations
-  );
+  const [destinations, setDestinations] = useState([]);
 
-  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [saving, setSaving] = useState(false);
+
+  const [error, setError] = useState("");
+
+  const [modalOpen, setModalOpen] = useState(false);
 
   const [selectedDestination, setSelectedDestination] =
     useState(null);
 
   /* =========================================================
+     FETCH DESTINATIONS
+     ========================================================= */
+
+  const fetchDestinations = async () => {
+    try {
+      setError("");
+
+      const response = await api.getDestinations();
+
+      const destinationData = response.data;
+
+      if (!Array.isArray(destinationData)) {
+        throw new Error(
+          "Invalid destination data received from server."
+        );
+      }
+
+      setDestinations(destinationData);
+    } catch (err) {
+      console.error(
+        "[DestinationList] Failed to fetch destinations:",
+        err
+      );
+
+      setError(
+        err.message || "Failed to load destinations."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* =========================================================
+     INITIAL FETCH
+     ========================================================= */
+
+  useEffect(() => {
+    fetchDestinations();
+  }, []);
+
+  /* =========================================================
      SUMMARY
      ========================================================= */
 
-  const connectedDestinations = destinations.filter(
-    (destination) => destination.status === "connected"
+  const disabledDestinations = destinations.filter(
+    (destination) =>
+      getDestinationStatus(destination) === "disabled"
   );
 
-  const connectingDestinations = destinations.filter(
-    (destination) => destination.status === "connecting"
+  const readyDestinations = destinations.filter(
+    (destination) =>
+      ["ready", "pending", "configured"].includes(
+        getDestinationStatus(destination)
+      )
   );
 
-  const disconnectedDestinations = destinations.filter(
-    (destination) => destination.status === "disconnected"
-  );
+  const needsConfigurationDestinations =
+    destinations.filter(
+      (destination) =>
+        getDestinationStatus(destination) ===
+        "needs_configuration"
+    );
 
   const totalDestinations = destinations.length;
 
   /* =========================================================
-     ADD DESTINATION
+     ADD / UPDATE DESTINATION
      ========================================================= */
 
-  const handleAddDestination = (newDestination) => {
-    setDestinations((previous) => [
-      ...previous,
-      newDestination,
-    ]);
+  const handleSaveDestination = async (payload) => {
+    setSaving(true);
+
+    try {
+      if (selectedDestination) {
+        await api.updateDestination(
+          selectedDestination.id,
+          payload
+        );
+      } else {
+        await api.createDestination(payload);
+      }
+
+      await fetchDestinations();
+
+      setModalOpen(false);
+
+      setSelectedDestination(null);
+    } finally {
+      setSaving(false);
+    }
   };
 
   /* =========================================================
-     RECONNECT
+     OPEN ADD MODAL
      ========================================================= */
 
-  const handleReconnect = (destinationId) => {
-    setDestinations((previous) =>
-      previous.map((destination) =>
-        destination.id === destinationId
-          ? {
-              ...destination,
-              status: "connecting",
-            }
-          : destination
-      )
-    );
+  const handleAdd = () => {
+    setSelectedDestination(null);
+    setModalOpen(true);
+  };
 
-    // Simulated connection process
-    setTimeout(() => {
-      setDestinations((previous) =>
-        previous.map((destination) =>
-          destination.id === destinationId
-            ? {
-                ...destination,
-                status: "connected",
-                bitrate: "6,000 Kbps",
-                resolution: "1080p",
-                fps: "60 FPS",
-              }
-            : destination
-        )
-      );
-    }, 2000);
+  /* =========================================================
+     OPEN EDIT MODAL
+     ========================================================= */
+
+  const handleEdit = (destination) => {
+    setSelectedDestination(destination);
+    setModalOpen(true);
   };
 
   /* =========================================================
      DELETE DESTINATION
      ========================================================= */
 
-  const handleDeleteDestination = (destinationId) => {
+  const handleDelete = async (destination) => {
     const confirmed = window.confirm(
-      "Are you sure you want to remove this destination?"
+      `Are you sure you want to remove "${destination.name}"?`
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
-    setDestinations((previous) =>
-      previous.filter(
-        (destination) => destination.id !== destinationId
-      )
-    );
+    try {
+      setError("");
+
+      await api.deleteDestination(destination.id);
+
+      await fetchDestinations();
+    } catch (err) {
+      console.error(
+        "[DestinationList] Delete failed:",
+        err
+      );
+
+      setError(
+        err.message || "Failed to delete destination."
+      );
+    }
   };
 
   /* =========================================================
@@ -845,7 +843,7 @@ function DestinationList() {
               </h2>
 
               <span className="rounded-full bg-white/5 px-2 py-0.5 text-xs text-slate-400">
-                {totalDestinations}
+                {loading ? "..." : totalDestinations}
               </span>
 
             </div>
@@ -856,23 +854,41 @@ function DestinationList() {
 
           </div>
 
-          {/* Add Destination */}
-          <button
-            type="button"
-            onClick={() => setAddModalOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-violet-500"
-          >
-            <Plus size={15} />
+          {/* Header Actions */}
+          <div className="flex gap-2">
 
-            Add Destination
-          </button>
+            <button
+              type="button"
+              onClick={fetchDestinations}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-medium text-slate-300 transition hover:bg-white/[0.07] disabled:opacity-50"
+            >
+              <RefreshCw
+                size={14}
+                className={loading ? "animate-spin" : ""}
+              />
+
+              Refresh
+            </button>
+
+            <button
+              type="button"
+              onClick={handleAdd}
+              className="flex items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-violet-500"
+            >
+              <Plus size={15} />
+
+              Add Destination
+            </button>
+
+          </div>
 
         </div>
 
         {/* Summary */}
         <div className="grid grid-cols-2 gap-3 p-5 pb-0 sm:grid-cols-4">
 
-          {/* Connected */}
+          {/* Ready */}
           <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
 
             <div className="flex items-center gap-2">
@@ -882,37 +898,17 @@ function DestinationList() {
               />
 
               <span className="text-xs text-slate-500">
-                Connected
+                Ready
               </span>
             </div>
 
             <p className="mt-2 text-xl font-semibold text-white">
-              {connectedDestinations.length}
+              {readyDestinations.length}
             </p>
 
           </div>
 
-          {/* Connecting */}
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
-
-            <div className="flex items-center gap-2">
-              <Clock
-                size={15}
-                className="text-amber-400"
-              />
-
-              <span className="text-xs text-slate-500">
-                Connecting
-              </span>
-            </div>
-
-            <p className="mt-2 text-xl font-semibold text-white">
-              {connectingDestinations.length}
-            </p>
-
-          </div>
-
-          {/* Disconnected */}
+          {/* Disabled */}
           <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
 
             <div className="flex items-center gap-2">
@@ -922,12 +918,32 @@ function DestinationList() {
               />
 
               <span className="text-xs text-slate-500">
-                Disconnected
+                Disabled
               </span>
             </div>
 
             <p className="mt-2 text-xl font-semibold text-white">
-              {disconnectedDestinations.length}
+              {disabledDestinations.length}
+            </p>
+
+          </div>
+
+          {/* Needs Configuration */}
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
+
+            <div className="flex items-center gap-2">
+              <Clock
+                size={15}
+                className="text-amber-400"
+              />
+
+              <span className="text-xs text-slate-500">
+                Needs Configuration
+              </span>
+            </div>
+
+            <p className="mt-2 text-xl font-semibold text-white">
+              {needsConfigurationDestinations.length}
             </p>
 
           </div>
@@ -954,22 +970,54 @@ function DestinationList() {
 
         </div>
 
+        {/* Error */}
+        {error && (
+          <div className="mx-5 mt-5 rounded-lg border border-red-500/20 bg-red-500/5 p-3">
+            <div className="flex items-start gap-2">
+              <AlertCircle
+                size={15}
+                className="mt-0.5 shrink-0 text-red-400"
+              />
+
+              <p className="text-xs text-red-400">
+                {error}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center gap-3 p-12">
+            <Loader2
+              size={20}
+              className="animate-spin text-violet-400"
+            />
+
+            <p className="text-sm text-slate-400">
+              Loading destinations...
+            </p>
+          </div>
+        )}
+
         {/* Destination Cards */}
-        {destinations.length > 0 ? (
+        {!loading && destinations.length > 0 && (
           <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-2">
 
             {destinations.map((destination) => (
               <DestinationCard
                 key={destination.id}
                 destination={destination}
-                onSettings={setSelectedDestination}
-                onReconnect={handleReconnect}
-                onDelete={handleDeleteDestination}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
               />
             ))}
 
           </div>
-        ) : (
+        )}
+
+        {/* Empty State */}
+        {!loading && destinations.length === 0 && !error && (
           <div className="p-10 text-center">
 
             <Radio
@@ -987,7 +1035,7 @@ function DestinationList() {
 
             <button
               type="button"
-              onClick={() => setAddModalOpen(true)}
+              onClick={handleAdd}
               className="mt-4 inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-violet-500"
             >
               <Plus size={14} />
@@ -1007,35 +1055,27 @@ function DestinationList() {
           />
 
           <p className="text-xs text-slate-500">
-            Stream distribution is managed by the MultiStream engine.
+            Destination configuration is managed by the MultiStream backend.
           </p>
 
         </div>
 
       </div>
 
-      {/* Add Modal */}
-      {addModalOpen && (
-        <AddDestinationModal
-          onClose={() => setAddModalOpen(false)}
-          onAdd={handleAddDestination}
-        />
-      )}
-
-      {/* Settings Modal */}
-      {selectedDestination && (
-        <DestinationSettingsModal
+      {/* Add / Edit Modal */}
+      {modalOpen && (
+        <DestinationModal
           destination={selectedDestination}
-          onClose={() => setSelectedDestination(null)}
+          onClose={() => {
+            setModalOpen(false);
+            setSelectedDestination(null);
+          }}
+          onSave={handleSaveDestination}
+          loading={saving}
         />
       )}
-
     </>
   );
 }
-
-/* =========================================================
-   EXPORT
-   ========================================================= */
 
 export default DestinationList;

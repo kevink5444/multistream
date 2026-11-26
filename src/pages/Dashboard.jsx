@@ -24,9 +24,15 @@ function Dashboard() {
 
   const [backendStatus, setBackendStatus] = useState("checking");
 
+  const [destinations, setDestinations] = useState([]);
+
   const [forwarders, setForwarders] = useState([]);
 
+  const [destinationLoading, setDestinationLoading] = useState(true);
+
   const [forwarderLoading, setForwarderLoading] = useState(true);
+
+  const [destinationError, setDestinationError] = useState(null);
 
   const [forwarderError, setForwarderError] = useState(null);
 
@@ -35,9 +41,13 @@ function Dashboard() {
      ======================================================= */
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkBackend = async () => {
       try {
         const response = await api.getStatus();
+
+        if (!isMounted) return;
 
         if (response.success && response.status === "online") {
           setBackendStatus("online");
@@ -45,11 +55,64 @@ function Dashboard() {
           setBackendStatus("offline");
         }
       } catch {
-        setBackendStatus("offline");
+        if (isMounted) {
+          setBackendStatus("offline");
+        }
       }
     };
 
     checkBackend();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  /* =======================================================
+     DESTINATION MONITOR
+     ======================================================= */
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchDestinations = async () => {
+      try {
+        const response = await api.getDestinations();
+
+        if (!isMounted) return;
+
+        if (response.success) {
+          setDestinations(
+            Array.isArray(response.data)
+              ? response.data
+              : []
+          );
+
+          setDestinationError(null);
+        } else {
+          throw new Error(
+            response.message || "Failed to fetch destinations"
+          );
+        }
+      } catch (error) {
+        if (isMounted) {
+          setDestinationError(error.message);
+        }
+      } finally {
+        if (isMounted) {
+          setDestinationLoading(false);
+        }
+      }
+    };
+
+    fetchDestinations();
+
+    const interval = setInterval(fetchDestinations, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   /* =======================================================
@@ -61,33 +124,22 @@ function Dashboard() {
 
     const fetchForwarderStatus = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/forwarders/status",
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+        const response = await api.getForwarderStatuses();
 
-        /* Authentication Check */
-        if (response.status === 401) {
-          if (isMounted) {
-            setForwarders([]);
-            setForwarderError("Authentication required.");
-          }
+        if (!isMounted) return;
 
-          return;
-        }
+        if (response.success) {
+          setForwarders(
+            Array.isArray(response.data)
+              ? response.data
+              : []
+          );
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch forwarder status");
-        }
-
-        const result = await response.json();
-
-        if (isMounted && result.success) {
-          setForwarders(result.data || []);
           setForwarderError(null);
+        } else {
+          throw new Error(
+            response.message || "Failed to fetch forwarder status"
+          );
         }
       } catch (error) {
         if (isMounted) {
@@ -126,7 +178,18 @@ function Dashboard() {
     (item) => item.status?.toLowerCase() === "failed"
   ).length;
 
-  const totalForwarders = forwarders.length;
+  /* =======================================================
+     DESTINATION STATISTICS
+     ======================================================= */
+
+  const totalDestinations = destinations.length;
+
+  const connectionPercentage =
+    totalDestinations > 0
+      ? Math.round(
+          (connectedForwarders / totalDestinations) * 100
+        )
+      : 0;
 
   /* =======================================================
      DASHBOARD STATISTICS
@@ -135,25 +198,20 @@ function Dashboard() {
   const dashboardStats = [
     {
       title: "Destinations",
-      value: totalForwarders,
+      value: totalDestinations,
       description: "Total configured destinations",
       trend: `${connectedForwarders} connected`,
       trendType: connectedForwarders > 0 ? "positive" : "neutral",
       icon: Radio,
       accent: "violet",
-      footer: `${totalForwarders} total destinations`,
+      footer: "Configured destinations",
     },
 
     {
       title: "Connected",
       value: connectedForwarders,
       description: "Active streaming destinations",
-      trend:
-        totalForwarders > 0
-          ? `${Math.round(
-              (connectedForwarders / totalForwarders) * 100
-            )}% connected`
-          : "0%",
+      trend: `${connectionPercentage}% connection rate`,
       trendType: connectedForwarders > 0 ? "positive" : "neutral",
       icon: Radio,
       accent: "emerald",
@@ -201,8 +259,6 @@ function Dashboard() {
       =================================================== */}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-        {/* Page Title */}
 
         <div>
           <div className="flex items-center gap-2">
@@ -290,7 +346,7 @@ function Dashboard() {
 
         </div>
 
-        {/* Loading State */}
+        {/* Loading */}
 
         {forwarderLoading ? (
 
@@ -300,7 +356,7 @@ function Dashboard() {
 
         ) : forwarderError ? (
 
-          /* Error State */
+          /* Error */
 
           <div className="rounded-lg border border-red-500/10 bg-red-500/[0.04] p-4">
 
@@ -432,7 +488,7 @@ function Dashboard() {
 
                     </div>
 
-                    {/* Error Message */}
+                    {/* Error */}
 
                     {forwarder.lastError && status === "failed" && (
                       <p className="max-w-xs truncate text-xs text-red-400">
@@ -478,13 +534,13 @@ function Dashboard() {
 
         {/* Streaming Destinations */}
 
-        <div className="xl:col-span-1">
+        <div>
           <DestinationList />
         </div>
 
         {/* Activity Log */}
 
-        <div className="xl:col-span-1">
+        <div>
           <ActivityList />
         </div>
 
@@ -496,7 +552,7 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
 
-        {/* Encoding Architecture */}
+        {/* Streaming Architecture */}
 
         <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#12151C] p-4">
 
