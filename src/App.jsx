@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   BrowserRouter,
@@ -87,9 +88,12 @@ function YouTubeLiveLoading() {
 // =====================================
 
 function AppRoutes() {
+  const cachedTheme =
+    localStorage.getItem("multistream-theme") || "dark";
+
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(cachedTheme);
 
   const location = useLocation();
 
@@ -101,6 +105,18 @@ function AppRoutes() {
 
   const isYouTubeLiveCreating =
     queryParams.get("youtube-live-creating") === "1";
+
+  // =====================================
+  // APPLY CACHED THEME
+  // =====================================
+
+  useEffect(() => {
+    const savedTheme =
+      localStorage.getItem("multistream-theme") || "dark";
+
+    setTheme(savedTheme);
+    applyTheme(savedTheme);
+  }, []);
 
   // =====================================
   // CHECK SESSION
@@ -129,13 +145,7 @@ function AppRoutes() {
   // =====================================
 
   useEffect(() => {
-    if (isLoading) return;
-
-    if (!user) {
-      setTheme("dark");
-      applyTheme("dark");
-      return;
-    }
+    if (isLoading || !user) return;
 
     async function loadTheme() {
       try {
@@ -146,13 +156,22 @@ function AppRoutes() {
           }
         );
 
+        if (!response.ok) {
+          return;
+        }
+
         const result = await response.json();
 
-        if (response.ok && result.success) {
-          const savedTheme =
-            result.data?.theme || "dark";
+        if (result.success && result.data?.theme) {
+          const savedTheme = result.data.theme;
 
           setTheme(savedTheme);
+
+          localStorage.setItem(
+            "multistream-theme",
+            savedTheme
+          );
+
           applyTheme(savedTheme);
         }
       } catch (error) {
@@ -161,8 +180,11 @@ function AppRoutes() {
           error
         );
 
-        setTheme("dark");
-        applyTheme("dark");
+        // Keep the cached theme.
+        const cachedTheme =
+          localStorage.getItem("multistream-theme") || "dark";
+
+        applyTheme(cachedTheme);
       }
     }
 
@@ -177,7 +199,15 @@ function AppRoutes() {
     const handleThemeChange = (event) => {
       const newTheme = event.detail;
 
+      if (!newTheme) return;
+
       setTheme(newTheme);
+
+      localStorage.setItem(
+        "multistream-theme",
+        newTheme
+      );
+
       applyTheme(newTheme);
     };
 
@@ -236,6 +266,9 @@ function AppRoutes() {
 
   function handleLogout() {
     setUser(null);
+
+    // Do not reset the selected theme.
+    // Preserve the user's theme preference.
   }
 
   // =====================================

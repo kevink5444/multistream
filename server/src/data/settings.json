@@ -3,7 +3,7 @@
   "startup": false,
   "minimizeToTray": true,
   "notifications": true,
-  "theme": "light",
+  "theme": "dark",
   "resolution": "1920x1080",
   "fps": "60",
   "videoEncoder": "H.264",
