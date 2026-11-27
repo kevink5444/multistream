@@ -1,0 +1,87 @@
+[
+  {
+    "id": "1795764816442",
+    "userId": "user_1795709223413",
+    "name": "test3",
+    "type": "camera",
+    "status": "inactive",
+    "wasActive": false,
+    "settings": {
+      "deviceId": "6f74cae5f025bcbebaffd74587d97599ed0118c1b33b4d6c75949b7785bc6067",
+      "rtmpUrl": "",
+      "device": "USB2.0 HD UVC WebCam (2b7e:b685)",
+      "fileName": "",
+      "fileSize": 0
+    },
+    "createdAt": "2026-11-27T07:33:36.442Z",
+    "updatedAt": "2026-11-27T07:42:51.664Z"
+  },
+  {
+    "id": "1795582786338",
+    "userId": "admin_1795333246880",
+    "name": "test1",
+    "type": "video",
+    "status": "inactive",
+    "wasActive": false,
+    "settings": {
+      "deviceId": "",
+      "rtmpUrl": "",
+      "device": "video_2026-11-22_09-54-41.mp4",
+      "fileName": "video_2026-11-22_09-54-41.mp4",
+      "fileSize": 0
+    },
+    "createdAt": "2026-11-27T07:15:00.000Z",
+    "updatedAt": "2026-11-27T07:15:00.000Z"
+  },
+  {
+    "id": "1795582791743",
+    "userId": "admin_1795333246880",
+    "name": "test1",
+    "type": "audio",
+    "status": "inactive",
+    "wasActive": false,
+    "settings": {
+      "deviceId": "communications",
+      "rtmpUrl": "",
+      "device": "Communications - Microphone Array (Realtek(R) Audio)",
+      "fileName": "",
+      "fileSize": 0
+    },
+    "createdAt": "2026-11-27T07:15:00.000Z",
+    "updatedAt": "2026-11-27T07:19:17.106Z"
+  },
+  {
+    "id": "1795582797711",
+    "userId": "admin_1795333246880",
+    "name": "test1",
+    "type": "rtmp",
+    "status": "inactive",
+    "wasActive": false,
+    "settings": {
+      "deviceId": "",
+      "rtmpUrl": "",
+      "device": "",
+      "fileName": "",
+      "fileSize": 0
+    },
+    "createdAt": "2026-11-27T07:15:00.000Z",
+    "updatedAt": "2026-11-27T07:15:00.000Z"
+  },
+  {
+    "id": "1795700340130",
+    "userId": "admin_1795333246880",
+    "name": "test1",
+    "type": "camera",
+    "status": "inactive",
+    "wasActive": false,
+    "settings": {
+      "deviceId": "6f74cae5f025bcbebaffd74587d97599ed0118c1b33b4d6c75949b7785bc6067",
+      "rtmpUrl": "",
+      "device": "USB2.0 HD UVC WebCam (2b7e:b685)",
+      "fileName": "",
+      "fileSize": 0
+    },
+    "createdAt": "2026-11-27T07:15:00.000Z",
+    "updatedAt": "2026-11-27T07:18:37.983Z"
+  }
+]

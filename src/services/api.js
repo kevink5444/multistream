@@ -104,6 +104,38 @@ export const api = {
       method: "DELETE",
     });
   },
+
+ /* =========================================================
+   SOURCES API
+   ========================================================= */
+
+    async getSources() {
+      return apiRequest("/api/sources");
+    },
+
+    async getSourceById(id) {
+      return apiRequest(`/api/sources/${id}`);
+    },
+
+    async createSource(data) {
+     return apiRequest("/api/sources", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+    async updateSource(id, data) {
+      return apiRequest(`/api/sources/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+    async deleteSource(id) {
+    return apiRequest(`/api/sources/${id}`, {
+     method: "DELETE",
+   });
+ },
   /* =========================================================
    ACTIVITY LOG API
    ========================================================= */
@@ -160,6 +192,31 @@ async clearActivityLogs() {
       method: "DELETE",
     });
   },
+  /* =========================================================
+   CHANNEL LIMIT REQUEST API
+   ========================================================= */
+
+    async getChannelLimitStatus() {
+     return apiRequest(
+      "/api/channel-limit-requests/my/status"
+    );
+  },
+
+    async getMyChannelLimitRequests() {
+      return apiRequest(
+      "/api/channel-limit-requests/my"
+    );
+  },
+
+    async createChannelLimitRequest(requestData) {
+      return apiRequest(
+    "/api/channel-limit-requests",
+    {
+      method: "POST",
+      body: JSON.stringify(requestData),
+    }
+  );
+},
 
   /* =========================================================
      SYSTEM INFORMATION API

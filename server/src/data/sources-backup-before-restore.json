@@ -1,0 +1,19 @@
+[
+  {
+    "id": "1795761889833",
+    "userId": "user_1795709223413",
+    "name": "test1",
+    "type": "camera",
+    "status": "inactive",
+    "wasActive": false,
+    "settings": {
+      "deviceId": "6f74cae5f025bcbebaffd74587d97599ed0118c1b33b4d6c75949b7785bc6067",
+      "rtmpUrl": "",
+      "device": "USB2.0 HD UVC WebCam (2b7e:b685)",
+      "fileName": "",
+      "fileSize": 0
+    },
+    "createdAt": "2026-11-27T06:44:49.833Z",
+    "updatedAt": "2026-11-27T06:44:58.498Z"
+  }
+]

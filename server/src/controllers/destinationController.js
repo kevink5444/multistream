@@ -1,3 +1,4 @@
+
 /* =========================================================
    DESTINATION CONTROLLER
    ========================================================= */
@@ -26,11 +27,15 @@ const createActivityLog = (logData) => {
 
 const getAllDestinations = (req, res) => {
   try {
-    const destinations = destinationService.getAllDestinations();
+    const destinations =
+      destinationService.getAllDestinations(
+        req.session.user
+      );
 
     res.status(200).json({
       success: true,
       message: "Destinations retrieved successfully",
+      total: destinations.length,
       data: destinations,
     });
   } catch (error) {
@@ -55,7 +60,11 @@ const getDestinationById = (req, res) => {
   try {
     const { id } = req.params;
 
-    const destination = destinationService.getDestinationById(id);
+    const destination =
+      destinationService.getDestinationById(
+        id,
+        req.session.user
+      );
 
     if (!destination) {
       return res.status(404).json({
@@ -112,13 +121,17 @@ const createDestination = (req, res) => {
        CREATE DESTINATION
        ===================================================== */
 
-    const newDestination = destinationService.createDestination({
-      name,
-      platform,
-      status,
-      streamKey,
-      streamUrl,
-    });
+    const newDestination =
+      destinationService.createDestination(
+        {
+          name,
+          platform,
+          status,
+          streamKey,
+          streamUrl,
+        },
+        req.session.user
+      );
 
     /* =====================================================
        ACTIVITY LOG
@@ -128,7 +141,8 @@ const createDestination = (req, res) => {
       type: "success",
       category: "destination",
       title: "Destination created",
-      description: `${newDestination.name} (${newDestination.platform}) was successfully added.`,
+      description:
+        `${newDestination.name} (${newDestination.platform}) was successfully added.`,
       destination: newDestination.name,
       metadata: {
         destinationId: newDestination.id,
@@ -151,10 +165,6 @@ const createDestination = (req, res) => {
       "[Destination Controller] Create error:",
       error.message
     );
-
-    /* =====================================================
-       ERROR ACTIVITY LOG
-       ===================================================== */
 
     createActivityLog({
       type: "error",
@@ -183,12 +193,12 @@ const updateDestination = (req, res) => {
   try {
     const { id } = req.params;
 
-    /* =====================================================
-       UPDATE DESTINATION
-       ===================================================== */
-
     const updatedDestination =
-      destinationService.updateDestination(id, req.body);
+      destinationService.updateDestination(
+        id,
+        req.body,
+        req.session.user
+      );
 
     if (!updatedDestination) {
       return res.status(404).json({
@@ -205,7 +215,8 @@ const updateDestination = (req, res) => {
       type: "info",
       category: "destination",
       title: "Destination updated",
-      description: `${updatedDestination.name} (${updatedDestination.platform}) was successfully updated.`,
+      description:
+        `${updatedDestination.name} (${updatedDestination.platform}) was successfully updated.`,
       destination: updatedDestination.name,
       metadata: {
         destinationId: updatedDestination.id,
@@ -228,10 +239,6 @@ const updateDestination = (req, res) => {
       "[Destination Controller] Update error:",
       error.message
     );
-
-    /* =====================================================
-       ERROR ACTIVITY LOG
-       ===================================================== */
 
     createActivityLog({
       type: "error",
@@ -260,12 +267,11 @@ const deleteDestination = (req, res) => {
   try {
     const { id } = req.params;
 
-    /* =====================================================
-       DELETE DESTINATION
-       ===================================================== */
-
     const deletedDestination =
-      destinationService.deleteDestination(id);
+      destinationService.deleteDestination(
+        id,
+        req.session.user
+      );
 
     if (!deletedDestination) {
       return res.status(404).json({
@@ -282,7 +288,8 @@ const deleteDestination = (req, res) => {
       type: "warning",
       category: "destination",
       title: "Destination deleted",
-      description: `${deletedDestination.name} (${deletedDestination.platform}) was removed.`,
+      description:
+        `${deletedDestination.name} (${deletedDestination.platform}) was removed.`,
       destination: deletedDestination.name,
       metadata: {
         destinationId: deletedDestination.id,
@@ -305,10 +312,6 @@ const deleteDestination = (req, res) => {
       "[Destination Controller] Delete error:",
       error.message
     );
-
-    /* =====================================================
-       ERROR ACTIVITY LOG
-       ===================================================== */
 
     createActivityLog({
       type: "error",

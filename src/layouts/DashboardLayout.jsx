@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+
 import Profile from "../pages/Profile";
 import Dashboard from "../pages/Dashboard";
 import Sources from "../pages/Sources";
@@ -12,6 +13,7 @@ import Analytics from "../pages/Analytics";
 import ActivityLogs from "../pages/ActivityLogs";
 import Settings from "../pages/Settings";
 import HelpCenter from "../pages/HelpCenter";
+import ChannelLimitRequest from "../pages/ChannelLimitRequest";
 
 // =====================================
 // PAGE CONFIGURATION
@@ -52,10 +54,16 @@ const pageConfig = {
     title: "Help Center",
     description: "Get help using MultiStream.",
   },
+
   profile: {
-  title: "My Profile",
-  description: "Manage your account information.",
-},
+    title: "My Profile",
+    description: "Manage your account information.",
+  },
+
+  "channel-limit-request": {
+    title: "Channel Limit Request",
+    description: "Request additional streaming channel capacity.",
+  },
 };
 
 // =====================================
@@ -77,6 +85,10 @@ function DashboardLayout({
   const activePage =
     location.pathname.split("/").filter(Boolean)[0] ||
     "dashboard";
+
+  // DEBUG - TEMPORARY
+  console.log("CURRENT PATH:", location.pathname);
+  console.log("ACTIVE PAGE:", activePage);
 
   // =====================================
   // SIDEBAR STATE
@@ -144,15 +156,19 @@ function DashboardLayout({
       case "help":
         return <HelpCenter />;
 
+      case "profile":
+        return (
+          <Profile
+            user={user}
+            onProfileUpdated={onProfileUpdated}
+          />
+        );
+
+      case "channel-limit-request":
+        return <ChannelLimitRequest />;
+
       default:
         return <Dashboard />;
-      case "profile":
-      return (
-    <Profile
-      user={user}
-      onProfileUpdated={onProfileUpdated}
-    />
-  );
     }
   };
 

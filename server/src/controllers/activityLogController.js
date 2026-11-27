@@ -11,7 +11,9 @@ const activityLogService = require("../services/activityLogService");
 
 const getAllActivityLogs = (req, res) => {
   try {
-    const logs = activityLogService.getAllLogs();
+    const user = req.session.user;
+
+    const logs = activityLogService.getAllLogs(user);
 
     res.status(200).json({
       success: true,
@@ -40,6 +42,8 @@ const getActivityLogsByType = (req, res) => {
   try {
     const { type } = req.params;
 
+    const user = req.session.user;
+
     const allowedTypes = [
       "success",
       "warning",
@@ -54,7 +58,10 @@ const getActivityLogsByType = (req, res) => {
       });
     }
 
-    const logs = activityLogService.getLogsByType(type);
+    const logs = activityLogService.getLogsByType(
+      type,
+      user
+    );
 
     res.status(200).json({
       success: true,
@@ -73,6 +80,7 @@ const getActivityLogsByType = (req, res) => {
     });
   }
 };
+
 /* =========================================================
    CREATE ACTIVITY LOG
    POST /api/activity-logs
@@ -80,6 +88,8 @@ const getActivityLogsByType = (req, res) => {
 
 const createActivityLog = (req, res) => {
   try {
+    const user = req.session.user;
+
     const {
       type,
       category,
@@ -158,11 +168,18 @@ const createActivityLog = (req, res) => {
        ===================================================== */
 
     const newLog = activityLogService.createLog({
+      // User ID berasal dari session, bukan request body
+      userId: user.id ?? user._id,
+
       type,
       category,
+
       title: title.trim(),
+
       description: description || "",
-      destination: destination || null,
+
+      destination: destination || "System",
+
       metadata: metadata || {},
     });
 
@@ -191,10 +208,28 @@ const createActivityLog = (req, res) => {
 /* =========================================================
    CLEAR ACTIVITY LOGS
    DELETE /api/activity-logs
+   ADMIN ONLY
    ========================================================= */
 
 const clearActivityLogs = (req, res) => {
   try {
+    const user = req.session.user;
+
+    /* =====================================================
+       ADMIN AUTHORIZATION
+       ===================================================== */
+
+    if (user?.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden. Admin access required.",
+      });
+    }
+
+    /* =====================================================
+       CLEAR LOGS
+       ===================================================== */
+
     activityLogService.clearLogs();
 
     res.status(200).json({

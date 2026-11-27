@@ -35,9 +35,13 @@ const readLogs = () => {
 
   try {
     const data = fs.readFileSync(dataPath, "utf8");
-    return JSON.parse(data);
+
+    const logs = JSON.parse(data);
+
+    return Array.isArray(logs) ? logs : [];
   } catch (error) {
     console.error("[Activity Log] Failed to read logs:", error.message);
+
     return [];
   }
 };
@@ -61,11 +65,16 @@ const saveLogs = (logs) => {
    ========================================================= */
 
 const createLog = ({
+  userId = null,
+
   type = "info",
   category = "system",
+
   title,
   description,
+
   destination = "System",
+
   metadata = null,
 }) => {
   if (!title) {
@@ -74,11 +83,16 @@ const createLog = ({
 
   const logs = readLogs();
 
+  const timestamp = new Date().toISOString();
+
   const newLog = {
     id: Date.now() + Math.floor(Math.random() * 1000),
 
+    userId: userId ? String(userId) : null,
+
     type,
     category,
+
     title,
     description: description || "",
 
@@ -86,9 +100,8 @@ const createLog = ({
 
     metadata,
 
-    timestamp: new Date().toISOString(),
-
-    createdAt: new Date().toISOString(),
+    timestamp,
+    createdAt: timestamp,
   };
 
   logs.unshift(newLog);
@@ -109,18 +122,37 @@ const createLog = ({
    GET ALL LOGS
    ========================================================= */
 
-const getAllLogs = () => {
-  return readLogs();
+const getAllLogs = (user = null) => {
+  const logs = readLogs();
+
+  // Admin dapat melihat seluruh aktivitas
+  if (user?.role === "admin") {
+    return logs;
+  }
+
+  // User harus memiliki ID
+  const userId = user?.id ?? user?._id;
+
+  if (!userId) {
+    throw new Error("Authentication required");
+  }
+
+  // User hanya melihat log miliknya
+  return logs.filter(
+    (log) => String(log.userId) === String(userId)
+  );
 };
 
 /* =========================================================
    GET LOGS BY TYPE
    ========================================================= */
 
-const getLogsByType = (type) => {
-  const logs = readLogs();
+const getLogsByType = (type, user = null) => {
+  const logs = getAllLogs(user);
 
-  return logs.filter((log) => log.type === type);
+  return logs.filter(
+    (log) => log.type === type
+  );
 };
 
 /* =========================================================

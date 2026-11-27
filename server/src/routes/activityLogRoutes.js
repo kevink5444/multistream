@@ -5,6 +5,10 @@
 const express = require("express");
 const router = express.Router();
 
+/* =========================================================
+   CONTROLLER
+   ========================================================= */
+
 const {
   getAllActivityLogs,
   getActivityLogsByType,
@@ -12,29 +16,60 @@ const {
   clearActivityLogs,
 } = require("../controllers/activityLogController");
 
+/* =========================================================
+   MIDDLEWARE
+   ========================================================= */
+
 const { requireAuth } = require("../middleware/authMiddleware");
+const { requireAdmin } = require("../middleware/adminMiddleware");
 
 /* =========================================================
    AUTHENTICATION
    ========================================================= */
 
+// Semua endpoint Activity Log wajib login
 router.use(requireAuth);
 
 /* =========================================================
-   ROUTES
+   GET ALL ACTIVITY LOGS
    ========================================================= */
 
-// GET all activity logs
+// Admin:
+// Menampilkan seluruh Activity Log
+
+// User:
+// Menampilkan Activity Log miliknya sendiri
+
 router.get("/", getAllActivityLogs);
 
-// GET logs by type
+/* =========================================================
+   GET ACTIVITY LOGS BY TYPE
+   ========================================================= */
+
+// Admin:
+// Menampilkan seluruh log berdasarkan tipe
+
+// User:
+// Menampilkan log miliknya berdasarkan tipe
+
 router.get("/type/:type", getActivityLogsByType);
 
-// CREATE activity log
+/* =========================================================
+   CREATE ACTIVITY LOG
+   ========================================================= */
+
+// User ID otomatis menggunakan session login
+// User tidak dapat menentukan userId dari request body
+
 router.post("/", createActivityLog);
 
-// DELETE all activity logs
-router.delete("/", clearActivityLogs);
+/* =========================================================
+   CLEAR ACTIVITY LOGS
+   ========================================================= */
+
+// Hanya Admin yang dapat menghapus seluruh Activity Log
+
+router.delete("/", requireAdmin, clearActivityLogs);
 
 /* =========================================================
    EXPORT ROUTER

@@ -263,8 +263,9 @@ function AddSourceModal({ onClose, onAdd }) {
       settings: {},
     };
 
-    onAdd(newSource);
-    onClose();
+    onAdd(newSource)
+      .then(() => onClose())
+      .catch((error) => console.error("Failed to add source:", error));
   };
 
   return (
@@ -375,6 +376,7 @@ function SourceSettingsModal({
   onLog,
 }) {
   const [devices, setDevices] = useState([]);
+  const [sourceName, setSourceName] = useState(source.name || "");
   const [deviceId, setDeviceId] = useState(
     source.settings?.deviceId || ""
   );
@@ -437,25 +439,36 @@ function SourceSettingsModal({
     }
   }
 
-  function handleSave() {
-  setError("");
-  setSaveMessage("");
+  async function handleSave() {
+    setError("");
+    setSaveMessage("");
 
-  onSave(source.id, {
-    deviceId,
-    file,
-    rtmpUrl,
-    device:
-      source.type === "camera" || source.type === "audio"
-        ? devices.find((device) => device.deviceId === deviceId)?.label ||
-          "Selected device"
-        : source.type === "video"
-          ? file?.name || "No video selected"
-          : rtmpUrl || "RTMP Input",
-  });
+    const trimmedSourceName = sourceName.trim();
 
-  setSaveMessage("Settings saved successfully.");
-}
+    if (!trimmedSourceName) {
+      setError("Source name cannot be empty.");
+      return;
+    }
+
+    try {
+      await onSave(source.id, {
+        name: trimmedSourceName,
+        deviceId,
+        file,
+        rtmpUrl,
+        device:
+          source.type === "camera" || source.type === "audio"
+            ? devices.find((device) => device.deviceId === deviceId)?.label || "Selected device"
+            : source.type === "video"
+              ? file?.name || source.settings?.fileName || "No video selected"
+              : rtmpUrl || "RTMP Input",
+      });
+
+      setSaveMessage("Settings saved successfully.");
+    } catch (err) {
+      setError(err.message || "Failed to save settings.");
+    }
+  }
 
   async function handlePreview() {
   setError("");
@@ -513,7 +526,7 @@ function SourceSettingsModal({
         throw new Error("Please enter an RTMP URL.");
       }
 
-      handleSave();
+      await handleSave();
 
       setError(
         "RTMP configuration saved. RTMP ingestion is not yet connected to the media engine."
@@ -608,6 +621,22 @@ function SourceSettingsModal({
         </div>
 
         <div className="space-y-5 p-5">
+
+          {/* Source Name */}
+          <div>
+            <label className="mb-2 block text-xs font-medium text-slate-400">
+              Source Name
+            </label>
+
+            <input
+              type="text"
+              value={sourceName}
+              onChange={(event) => setSourceName(event.target.value)}
+              placeholder="Enter source name"
+              maxLength={100}
+              className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
+            />
+          </div>
 
           {/* Status */}
           <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] p-3">
@@ -833,26 +862,9 @@ function SourceSettingsModal({
 ========================================================= */
 
 function Sources() {
-const [sources, setSources] = useState(() => {
-  try {
-    const savedSources = localStorage.getItem("multistream_sources");
-
-    if (!savedSources) return [];
-
-    return JSON.parse(savedSources).map((source) => ({
-      ...source,
-
-      wasActive:
-        source.wasActive ??
-        source.status === "active",
-
-      status: "inactive",
-    }));
-  } catch (error) {
-    console.error("Failed to load sources:", error);
-    return [];
-  }
-});
+  const [sources, setSources] = useState([]);
+  const [loadingSources, setLoadingSources] = useState(true);
+  const [sourcesError, setSourcesError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -861,7 +873,40 @@ const [sources, setSources] = useState(() => {
   const streamsRef = useRef({});
   const autoReconnectAttemptedRef = useRef(false);
   const deviceChangeHandlersRef = useRef({});
-  const disconnectCheckersRef = useRef({});
+  const trackHandlersRef = useRef({});
+  const sourceHealthRef = useRef({});
+
+  /* =====================================================
+     LOAD SOURCES FROM BACKEND
+  ===================================================== */
+
+  async function loadSources() {
+    try {
+      setLoadingSources(true);
+      setSourcesError("");
+
+      const response = await api.getSources();
+      if (!response?.success) {
+        throw new Error(response?.message || "Failed to load sources.");
+      }
+
+      setSources((response.data || []).map((source) => ({
+        ...source,
+        device: source.settings?.device || "",
+        wasActive: false,
+        status: "inactive",
+      })));
+    } catch (error) {
+      console.error("[Sources] Failed to load:", error);
+      setSourcesError(error.message || "Failed to load sources.");
+    } finally {
+      setLoadingSources(false);
+    }
+  }
+
+  useEffect(() => {
+    loadSources();
+  }, []);
   const activeSources = sources.filter(
     (source) => source.status === "active"
   );
@@ -880,75 +925,105 @@ const [sources, setSources] = useState(() => {
      ADD SOURCE
   ===================================================== */
 
-  function handleAddSource(newSource) {
-  setSources((previous) => [
-    ...previous,
-    newSource,
-  ]);
+  async function handleAddSource(newSource) {
+    try {
+      const response = await api.createSource({
+        name: newSource.name,
+        type: newSource.type,
+        settings: {},
+      });
+      if (!response?.success || !response.data) {
+        throw new Error(response?.message || "Failed to create source.");
+      }
 
-  logSourceActivity({
-    type: "success",
-    title: "Source Added",
-    description: `${newSource.name} was added to the source manager.`,
-    source: newSource,
-    metadata: {
-      action: "source_added",
-    },
-  });
-}
+      const createdSource = {
+        ...response.data,
+        device: response.data.settings?.device || "",
+        status: "inactive",
+        wasActive: false,
+      };
+      setSources((previous) => [...previous, createdSource]);
+
+      logSourceActivity({
+        type: "success",
+        title: "Source Added",
+        description: `${createdSource.name} was added to the source manager.`,
+        source: createdSource,
+        metadata: { action: "source_added" },
+      });
+      return createdSource;
+    } catch (error) {
+      console.error("[Sources] Create failed:", error);
+      setSourcesError(error.message || "Failed to create source.");
+      throw error;
+    }
+  }
 
   /* =====================================================
      SAVE SETTINGS
   ===================================================== */
 
-  function handleSaveSettings(sourceId, settings) {
-  const source = sources.find(
-    (item) => item.id === sourceId
-  );
+  async function handleSaveSettings(sourceId, settings) {
+    const source = sources.find((item) => String(item.id) === String(sourceId));
+    if (!source) return;
 
-  setSources((previous) =>
-    previous.map((item) =>
-      item.id === sourceId
-        ? {
-            ...item,
-            settings,
-            device: settings.device,
-          }
-        : item
-    )
-  );
+    // File objects are browser-only; persist only their metadata.
+    const persistedSettings = {
+      deviceId: settings.deviceId || "",
+      rtmpUrl: settings.rtmpUrl || "",
+      device: settings.device || "",
+      fileName: settings.file?.name || settings.fileName || "",
+      fileSize: settings.file?.size || settings.fileSize || 0,
+    };
 
-  setSelectedSource((previous) =>
-    previous && previous.id === sourceId
-      ? {
-            ...previous,
-            settings,
-            device: settings.device,
-        }
-      : previous
-  );
+    try {
+      const response = await api.updateSource(sourceId, {
+        name: settings.name,
+        settings: persistedSettings,
+      });
+      if (!response?.success || !response.data) {
+        throw new Error(response?.message || "Failed to save source settings.");
+      }
 
-  logSourceActivity({
-    type: "info",
-    title: "Source Settings Updated",
-    description: `Settings for ${source?.name || "source"} were updated.`,
-    source,
-    metadata: {
-      action: "settings_updated",
-      device: settings.device,
-    },
-  });
-}
-  /* =====================================================
-     START SOURCE
-  ===================================================== */
+      const updatedSource = {
+        ...response.data,
+        settings: {
+          ...response.data.settings,
+          file: settings.file || source.settings?.file || null,
+        },
+        device: settings.device || response.data.settings?.device || "",
+      };
 
+      setSources((previous) => previous.map((item) =>
+        String(item.id) === String(sourceId) ? updatedSource : item
+      ));
+      setSelectedSource((previous) =>
+        previous && String(previous.id) === String(sourceId) ? updatedSource : previous
+      );
+
+      logSourceActivity({
+        type: "info",
+        title: "Source Settings Updated",
+        description:
+          source.name !== updatedSource.name
+            ? `Source renamed from "${source.name}" to "${updatedSource.name}".`
+            : `Settings for ${updatedSource.name} were updated.`,
+        source: updatedSource,
+        metadata: {
+          action: "settings_updated",
+          device: settings.device,
+          oldName: source.name,
+          newName: updatedSource.name,
+        },
+      });
+    } catch (error) {
+      console.error("[Sources] Settings update failed:", error);
+      setSourcesError(error.message || "Failed to save source settings.");
+      throw error;
+    }
+  }
  /* =====================================================
-   START SOURCE
-===================================================== */
-
-/* =====================================================
-   START SOURCE + DEVICE DISCONNECT DETECTION
+   START SOURCE + TRACK HEALTH MONITOR
 ===================================================== */
 
 function handleStartSource(sourceId, stream) {
@@ -959,209 +1034,181 @@ function handleStartSource(sourceId, stream) {
   if (stream) {
     streamsRef.current[sourceId] = stream;
 
-    // Bersihkan listener dan checker sebelumnya
-    if (deviceChangeHandlersRef.current[sourceId]) {
-      navigator.mediaDevices?.removeEventListener(
-        "devicechange",
-        deviceChangeHandlersRef.current[sourceId]
-      );
-    }
-
-    if (disconnectCheckersRef.current[sourceId]) {
-      clearInterval(
-        disconnectCheckersRef.current[sourceId]
-      );
-    }
-
-    let disconnected = false;
-
-    const tracks = stream.getTracks();
-
-    const handleDeviceDisconnected = (track) => {
-      // Cegah log ganda
-      if (disconnected) return;
-
-      // Pastikan stream yang diperiksa adalah stream aktif
-      if (streamsRef.current[sourceId] !== stream) {
-        return;
-      }
-
-      disconnected = true;
-
-      console.warn(
-        "DEVICE DISCONNECTED DETECTED",
-        {
-          sourceId,
-          trackKind: track?.kind,
-          trackLabel: track?.label,
-          readyState: track?.readyState,
+    // Bersihkan listener stream sebelumnya
+    if (trackHandlersRef.current[sourceId]) {
+      trackHandlersRef.current[sourceId].forEach(
+        ({ track, event, handler }) => {
+          track.removeEventListener(event, handler);
         }
       );
 
-      // Bersihkan checker
-      if (disconnectCheckersRef.current[sourceId]) {
-        clearInterval(
-          disconnectCheckersRef.current[sourceId]
-        );
+      delete trackHandlersRef.current[sourceId];
+    }
 
-        delete disconnectCheckersRef.current[sourceId];
-      }
+    // Reset health state
+    sourceHealthRef.current[sourceId] = "healthy";
 
-      // Bersihkan listener devicechange
-      if (deviceChangeHandlersRef.current[sourceId]) {
-        navigator.mediaDevices?.removeEventListener(
-          "devicechange",
-          deviceChangeHandlersRef.current[sourceId]
-        );
+    const handlers = [];
 
-        delete deviceChangeHandlersRef.current[sourceId];
-      }
-
-      // Stop track lain yang masih aktif
-      tracks.forEach((currentTrack) => {
-        if (currentTrack.readyState !== "ended") {
-          currentTrack.stop();
-        }
-      });
-
-      // Hapus stream aktif
-      delete streamsRef.current[sourceId];
-
-      // Update status Source
+    const updateSourceStatus = (status) => {
       setSources((previous) =>
         previous.map((item) =>
           item.id === sourceId
             ? {
                 ...item,
-                status: "inactive",
-                wasActive: false,
+                status,
+                wasActive: status === "active",
               }
             : item
         )
       );
 
-      // Update selected Source
       setSelectedSource((previous) =>
         previous && previous.id === sourceId
           ? {
               ...previous,
-              status: "inactive",
-              wasActive: false,
+              status,
+              wasActive: status === "active",
             }
           : previous
       );
+    };
 
-      // Activity Log
+    const logSignalLost = (track) => {
+      // Jangan membuat log berulang
+      if (
+        sourceHealthRef.current[sourceId] === "lost"
+      ) {
+        return;
+      }
+
+      sourceHealthRef.current[sourceId] = "lost";
+
+      console.warn("SOURCE SIGNAL LOST", {
+        sourceId,
+        sourceName: source?.name,
+        trackKind: track.kind,
+        trackLabel: track.label,
+        readyState: track.readyState,
+      });
+
+      updateSourceStatus("inactive");
+
       logSourceActivity({
         type: "warning",
-        title: "Source Device Disconnected",
-        description: `${source?.name || "Source"} device connection ended unexpectedly.`,
+        title: "Source Signal Lost",
+        description: `${source?.name || "Source"} input signal is no longer available.`,
         source,
         metadata: {
-          action: "device_disconnected",
-          trackKind: track?.kind || "unknown",
+          action: "source_signal_lost",
+          trackKind: track.kind,
+          trackState: track.readyState,
         },
       });
     };
 
-    // ================================================
-    // 1. TRACK ENDED EVENT
-    // ================================================
-
-    tracks.forEach((track) => {
-      track.addEventListener("ended", () => {
-        handleDeviceDisconnected(track);
-      });
-    });
-
-    // ================================================
-    // 2. DEVICE CHANGE EVENT
-    // ================================================
-
-    const checkDeviceConnection = async () => {
-      if (disconnected) return;
-
-      if (streamsRef.current[sourceId] !== stream) {
+    const logSignalRecovered = (track) => {
+      if (
+        sourceHealthRef.current[sourceId] !== "lost"
+      ) {
         return;
       }
 
-      try {
-        // Periksa track
-        const endedTrack = tracks.find(
-          (track) => track.readyState === "ended"
-        );
+      sourceHealthRef.current[sourceId] = "healthy";
 
-        if (endedTrack) {
-          handleDeviceDisconnected(endedTrack);
+      console.info("SOURCE SIGNAL RECOVERED", {
+        sourceId,
+        sourceName: source?.name,
+        trackKind: track.kind,
+      });
+
+      updateSourceStatus("active");
+
+      logSourceActivity({
+        type: "success",
+        title: "Source Signal Recovered",
+        description: `${source?.name || "Source"} input signal has recovered.`,
+        source,
+        metadata: {
+          action: "source_signal_recovered",
+          trackKind: track.kind,
+        },
+      });
+    };
+
+    stream.getTracks().forEach((track) => {
+      // Track ended
+      const endedHandler = () => {
+        if (streamsRef.current[sourceId] !== stream) {
           return;
         }
 
-        // Periksa device fisik
-        const availableDevices =
-          await navigator.mediaDevices.enumerateDevices();
+        logSignalLost(track);
+      };
 
-        for (const track of tracks) {
-          const activeDeviceId =
-            track.getSettings().deviceId;
-
-          if (!activeDeviceId) continue;
-
-          const deviceExists = availableDevices.some(
-            (device) =>
-              device.deviceId === activeDeviceId
-          );
-
-          if (!deviceExists) {
-            handleDeviceDisconnected(track);
-            return;
-          }
+      // Track mute
+      const muteHandler = () => {
+        if (streamsRef.current[sourceId] !== stream) {
+          return;
         }
-      } catch (error) {
-        console.error(
-          "Device connection check failed:",
-          error
-        );
-      }
-    };
 
-    const deviceChangeHandler = () => {
-      console.log("DEVICE CHANGE EVENT DETECTED");
+        console.warn("SOURCE TRACK MUTED", {
+          sourceId,
+          kind: track.kind,
+          label: track.label,
+        });
 
-      checkDeviceConnection();
-    };
+        logSignalLost(track);
+      };
 
-    navigator.mediaDevices?.addEventListener(
-      "devicechange",
-      deviceChangeHandler
-    );
+      // Track unmute
+      const unmuteHandler = () => {
+        if (streamsRef.current[sourceId] !== stream) {
+          return;
+        }
 
-    deviceChangeHandlersRef.current[sourceId] =
-      deviceChangeHandler;
+        logSignalRecovered(track);
+      };
 
-    // ================================================
-    // 3. PERIODIC DEVICE CHECK
-    // ================================================
+      track.addEventListener("ended", endedHandler);
+      track.addEventListener("mute", muteHandler);
+      track.addEventListener("unmute", unmuteHandler);
 
-    disconnectCheckersRef.current[sourceId] =
-      setInterval(checkDeviceConnection, 2000);
+      handlers.push(
+        {
+          track,
+          event: "ended",
+          handler: endedHandler,
+        },
+        {
+          track,
+          event: "mute",
+          handler: muteHandler,
+        },
+        {
+          track,
+          event: "unmute",
+          handler: unmuteHandler,
+        }
+      );
+    });
 
-    // Diagnostic
-    console.log("SOURCE DEVICE MONITOR STARTED", {
+    trackHandlersRef.current[sourceId] = handlers;
+
+    console.log("SOURCE TRACK MONITOR STARTED", {
       sourceId,
       sourceName: source?.name,
-      tracks: tracks.map((track) => ({
+      tracks: stream.getTracks().map((track) => ({
         kind: track.kind,
         label: track.label,
         readyState: track.readyState,
+        muted: track.muted,
         deviceId: track.getSettings().deviceId,
       })),
     });
   }
 
-  // ================================================
-  // UPDATE SOURCE STATUS
-  // ================================================
-
+  // Update Source status
   setSources((previous) =>
     previous.map((item) =>
       item.id === sourceId
@@ -1174,6 +1221,7 @@ function handleStartSource(sourceId, stream) {
     )
   );
 
+  // Update selected Source
   setSelectedSource((previous) =>
     previous && previous.id === sourceId
       ? {
@@ -1184,10 +1232,7 @@ function handleStartSource(sourceId, stream) {
       : previous
   );
 
-  // ================================================
-  // ACTIVITY LOG PREVIEW STARTED
-  // ================================================
-
+  // Activity Log Preview Started
   logSourceActivity({
     type: "success",
     title: "Source Preview Started",
@@ -1198,6 +1243,8 @@ function handleStartSource(sourceId, stream) {
     },
   });
 }
+
+  
   /* =====================================================
    AUTO RECONNECT SOURCES
 ===================================================== */
@@ -1257,63 +1304,95 @@ async function handleAutoReconnect(source) {
   });
 }
 }
-  /* =====================================================
-     STOP SOURCE
-  ===================================================== */
+ /* =====================================================
+   STOP SOURCE
+===================================================== */
 
-  function handleStopSource(sourceId, shouldLog = true) {
+function handleStopSource(sourceId, shouldLog = true) {
   const source = sources.find(
     (item) => item.id === sourceId
   );
 
   const stream = streamsRef.current[sourceId];
 
-  if (stream) {
-  // Hapus listener devicechange
+  // =========================================
+  // CLEANUP TRACK MONITOR
+  // =========================================
+
+  if (trackHandlersRef.current[sourceId]) {
+    trackHandlersRef.current[sourceId].forEach(
+      ({ track, event, handler }) => {
+        track.removeEventListener(event, handler);
+      }
+    );
+
+    delete trackHandlersRef.current[sourceId];
+  }
+
+  // =========================================
+  // CLEANUP DEVICE CHANGE LISTENER
+  // =========================================
+
   if (deviceChangeHandlersRef.current[sourceId]) {
     navigator.mediaDevices?.removeEventListener(
       "devicechange",
       deviceChangeHandlersRef.current[sourceId]
     );
 
-    
-    if (disconnectCheckersRef.current[sourceId]) {
-  clearInterval(
-    disconnectCheckersRef.current[sourceId]
-  );
-  delete deviceChangeHandlersRef.current[sourceId];
-}
+    delete deviceChangeHandlersRef.current[sourceId];
   }
 
-  // Stop semua track
-  stream.getTracks().forEach((track) => {
-    track.stop();
-  });
+  // =========================================
+  // RESET SOURCE HEALTH
+  // =========================================
 
-  // Hapus stream
-  delete streamsRef.current[sourceId];
-}
+  delete sourceHealthRef.current[sourceId];
+
+  // =========================================
+  // STOP MEDIA TRACKS
+  // =========================================
+
+  if (stream) {
+    stream.getTracks().forEach((track) => {
+      track.stop();
+    });
+
+    delete streamsRef.current[sourceId];
+  }
+
+  // =========================================
+  // UPDATE SOURCE STATUS
+  // =========================================
+
   setSources((previous) =>
     previous.map((item) =>
       item.id === sourceId
         ? {
-              ...item,
-              status: "inactive",
-              wasActive: false,
+            ...item,
+            status: "inactive",
+            wasActive: false,
           }
         : item
     )
   );
 
+  // =========================================
+  // UPDATE SELECTED SOURCE
+  // =========================================
+
   setSelectedSource((previous) =>
     previous && previous.id === sourceId
       ? {
-              ...previous,
-              status: "inactive",
-              wasActive: false,
-          }
-        : previous
+          ...previous,
+          status: "inactive",
+          wasActive: false,
+        }
+      : previous
   );
+
+  // =========================================
+  // ACTIVITY LOG
+  // =========================================
 
   if (shouldLog) {
     logSourceActivity({
@@ -1327,7 +1406,6 @@ async function handleAutoReconnect(source) {
     });
   }
 }
-
   /* =====================================================
      TOGGLE SOURCE
   ===================================================== */
@@ -1351,90 +1429,46 @@ async function handleAutoReconnect(source) {
      DELETE SOURCE
   ===================================================== */
 
-  function handleDeleteSource(sourceId) {
-  const source = sources.find(
-    (item) => item.id === sourceId
-  );
+  async function handleDeleteSource(sourceId) {
+    const source = sources.find((item) => String(item.id) === String(sourceId));
+    if (!source) return;
 
-  // Stop Source tanpa membuat log Stop tambahan
-  handleStopSource(sourceId, false);
+    try {
+      const response = await api.deleteSource(sourceId);
+      if (!response?.success) {
+        throw new Error(response?.message || "Failed to delete source.");
+      }
 
-  setSources((previous) =>
-    previous.filter((item) => item.id !== sourceId)
-  );
+      handleStopSource(sourceId, false);
+      setSources((previous) => previous.filter((item) => String(item.id) !== String(sourceId)));
+      if (selectedSource && String(selectedSource.id) === String(sourceId)) {
+        setSelectedSource(null);
+      }
 
-  if (selectedSource?.id === sourceId) {
-    setSelectedSource(null);
+      logSourceActivity({
+        type: "warning",
+        title: "Source Deleted",
+        description: `${source.name} was removed from the source manager.`,
+        source,
+        metadata: { action: "source_deleted" },
+      });
+    } catch (error) {
+      console.error("[Sources] Delete failed:", error);
+      setSourcesError(error.message || "Failed to delete source.");
+    }
   }
-
-  logSourceActivity({
-    type: "warning",
-    title: "Source Deleted",
-    description: `${source?.name || "Source"} was removed from the source manager.`,
-    source,
-    metadata: {
-      action: "source_deleted",
-    },
-  });
-}
-
-/* =====================================================
-   SAVE SOURCES TO LOCAL STORAGE
-===================================================== */
-
-useEffect(() => {
-  try {
-    const sourcesToSave = sources.map((source) => ({
-      ...source,
-
-      wasActive:
-        source.status === "active"
-          ? true
-          : source.wasActive ?? false,
-
-      status: source.status,
-
-      settings: {
-        ...source.settings,
-        file: null,
-      },
-    }));
-
-    localStorage.setItem(
-      "multistream_sources",
-      JSON.stringify(sourcesToSave)
-    );
-  } catch (error) {
-    console.error("Failed to save sources:", error);
-  }
-}, [sources]);
-
 
 /* =====================================================
    AUTO RECONNECT SOURCES
 ===================================================== */
 
 useEffect(() => {
-  if (autoReconnectAttemptedRef.current) {
-    return;
-  }
+  if (loadingSources || autoReconnectAttemptedRef.current) return;
 
   autoReconnectAttemptedRef.current = true;
-
-  const reconnectableSources = sources.filter(
-    (source) =>
-      source.wasActive &&
-      (source.type === "camera" || source.type === "audio")
-  );
-
-  async function reconnectSources() {
-    for (const source of reconnectableSources) {
-      await handleAutoReconnect(source);
-    }
-  }
-
-  reconnectSources();
-}, []);
+  // Sources are server records. Runtime preview status is not persisted,
+  // so newly loaded sources remain inactive until the user starts preview.
+}, [loadingSources]);
  
 
   /* =====================================================
@@ -1449,7 +1483,7 @@ useEffect(() => {
 
         <div>
           <h1 className="text-xl font-semibold text-white">
-            Sources
+            Stream Sources
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
@@ -1654,7 +1688,20 @@ useEffect(() => {
 
         </div>
 
-        {filteredSources.length > 0 ? (
+        {loadingSources ? (
+          <div className="p-12 text-center">
+            <RefreshCw size={24} className="mx-auto animate-spin text-violet-400" />
+            <p className="mt-3 text-sm text-slate-400">Loading sources...</p>
+          </div>
+        ) : sourcesError ? (
+          <div className="p-8 text-center">
+            <AlertCircle size={28} className="mx-auto text-amber-400" />
+            <p className="mt-3 text-sm text-amber-300">{sourcesError}</p>
+            <button type="button" onClick={loadSources} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2 text-xs text-slate-300 hover:bg-white/5">
+              <RefreshCw size={13} /> Retry
+            </button>
+          </div>
+        ) : filteredSources.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
 
             {filteredSources.map((source) => (

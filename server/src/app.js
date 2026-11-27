@@ -1,11 +1,11 @@
 /* =========================================================
    MULTISTREAM EXPRESS APPLICATION
    ========================================================= */
-
+const sourceRoutes = require("./routes/sourceRoutes");
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
-
+const channelLimitRequestRoutes = require("./routes/channelLimitRequestRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
 const authRoutes = require("./routes/authRoutes");
 const destinationRoutes = require("./routes/destinationRoutes");
@@ -100,6 +100,12 @@ app.use("/api/auth", authRoutes);
    ========================================================= */
 
 app.use("/api/destinations", destinationRoutes);
+/* =========================================================
+   SOURCE ROUTES
+   ========================================================= */
+
+app.use("/api/sources", sourceRoutes);
+
 
 /* =========================================================
    SETTINGS ROUTES
@@ -142,6 +148,16 @@ app.use("/api/notifications", notificationRoutes);
    ========================================================= */
 
 app.use("/api/system", systemRoutes);
+
+/* =========================================================
+   CHANNEL LIMIT REQUEST ROUTES
+   ========================================================= */
+
+app.use(
+  "/api/channel-limit-requests",
+  channelLimitRequestRoutes
+);
+
 
 /* =========================================================
    EXPORT APPLICATION

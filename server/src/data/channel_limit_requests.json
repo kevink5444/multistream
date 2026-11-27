@@ -1,0 +1,17 @@
+[
+  {
+    "id": "clr_1795754711869_df8v5t",
+    "userId": "user_1795709223413",
+    "userName": "adit kurniawan",
+    "userEmail": "adit1@example.com",
+    "currentLimit": 2,
+    "requestedLimit": 3,
+    "reason": "permintaan untuk ke 3 channel",
+    "status": "pending",
+    "adminNote": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "createdAt": "2026-11-27T04:45:11.869Z",
+    "updatedAt": "2026-11-27T04:45:11.869Z"
+  }
+]

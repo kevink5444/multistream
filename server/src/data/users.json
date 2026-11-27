@@ -42,5 +42,15 @@
     "status": "active",
     "createdAt": "2026-11-26T16:07:03.413Z",
     "updatedAt": "2026-11-26T16:19:50.204Z"
+  },
+  {
+    "id": "user_1795762052426",
+    "name": "Test1",
+    "email": "test1@example.com",
+    "passwordHash": "$2b$12$Ale0y0cp3fHGV0tiV8xrJe4A/jsxKTXHvMyGOChd8S./Pzvq.nSvK",
+    "role": "user",
+    "channelLimit": 2,
+    "status": "active",
+    "createdAt": "2026-11-27T06:47:32.426Z"
   }
 ]
