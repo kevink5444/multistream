@@ -9,12 +9,12 @@ import {
 } from "react-router-dom";
 
 import DashboardLayout from "./layouts/DashboardLayout";
-
+import YouTubeOAuthCallback from "./pages/YouTubeOAuthCallback";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-
+import YouTubeOAuthConnecting from "./pages/YouTubeOAuthConnecting";
 import { getCurrentUser } from "./services/authService";
 
 // =====================================
@@ -293,9 +293,12 @@ function handleProfileUpdated(updatedUser) {
   // AUTH LOADING
   // =====================================
 
-  if (isLoading) {
-    return <LoadingPage />;
-  }
+    const isOAuthPage =
+    location.pathname.startsWith("/oauth/youtube");
+
+    if (isLoading && !isOAuthPage) {
+      return <LoadingPage />;
+}
 
   // =====================================
   // ROUTES
@@ -407,6 +410,19 @@ function handleProfileUpdated(updatedUser) {
           />
         }
       />
+      {/* YOUTUBE OAUTH CALLBACK */}
+
+    <Route
+      path="/oauth/youtube/callback"
+      element={<YouTubeOAuthCallback />}
+  
+      />
+      <Route
+        path="/oauth/youtube/connecting"
+        element={<YouTubeOAuthConnecting />}
+      />
+
+
             {/* PROTECTED ROUTES */}
 
       <Route

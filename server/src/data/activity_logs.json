@@ -1,5 +1,179 @@
 [
   {
+    "id": 1795788170410,
+    "userId": null,
+    "type": "info",
+    "category": "destination",
+    "title": "Destination updated",
+    "description": "testsy12 (youtube) was successfully updated.",
+    "destination": "testsy12",
+    "metadata": {
+      "destinationId": 39,
+      "platform": "youtube",
+      "status": "connected"
+    },
+    "timestamp": "2026-11-27T14:02:50.382Z",
+    "createdAt": "2026-11-27T14:02:50.382Z"
+  },
+  {
+    "id": 1795788039424,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-27T13:30:19.388Z",
+      "currentStartedAt": "2026-11-27T14:00:38.734Z"
+    },
+    "timestamp": "2026-11-27T14:00:38.741Z",
+    "createdAt": "2026-11-27T14:00:38.741Z"
+  },
+  {
+    "id": 1795786220243,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-27T12:47:30.840Z",
+      "currentStartedAt": "2026-11-27T13:30:19.388Z"
+    },
+    "timestamp": "2026-11-27T13:30:19.398Z",
+    "createdAt": "2026-11-27T13:30:19.398Z"
+  },
+  {
+    "id": 1795783651273,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-27T11:45:41.971Z",
+      "currentStartedAt": "2026-11-27T12:47:30.840Z"
+    },
+    "timestamp": "2026-11-27T12:47:30.859Z",
+    "createdAt": "2026-11-27T12:47:30.859Z"
+  },
+  {
+    "id": 1795781101593,
+    "userId": "user_1795762052426",
+    "type": "info",
+    "category": "source",
+    "title": "Source Preview Stopped",
+    "description": "Camera 0843 preview was stopped.",
+    "destination": "Camera 0843",
+    "metadata": {
+      "sourceId": "1795781080861",
+      "sourceType": "camera",
+      "action": "preview_stopped"
+    },
+    "timestamp": "2026-11-27T12:05:00.633Z",
+    "createdAt": "2026-11-27T12:05:00.633Z"
+  },
+  {
+    "id": 1795781097149,
+    "userId": "user_1795762052426",
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "Camera 0843 preview started successfully.",
+    "destination": "Camera 0843",
+    "metadata": {
+      "sourceId": "1795781080861",
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-27T12:04:56.192Z",
+    "createdAt": "2026-11-27T12:04:56.192Z"
+  },
+  {
+    "id": 1795781089861,
+    "userId": "user_1795762052426",
+    "type": "info",
+    "category": "source",
+    "title": "Source Settings Updated",
+    "description": "Settings for Camera 0843 were updated.",
+    "destination": "Camera 0843",
+    "metadata": {
+      "sourceId": "1795781080861",
+      "sourceType": "camera",
+      "action": "settings_updated",
+      "device": "USB2.0 HD UVC WebCam (2b7e:b685)",
+      "oldName": "Camera 0843",
+      "newName": "Camera 0843"
+    },
+    "timestamp": "2026-11-27T12:04:49.224Z",
+    "createdAt": "2026-11-27T12:04:49.224Z"
+  },
+  {
+    "id": 1795781088642,
+    "userId": "user_1795762052426",
+    "type": "success",
+    "category": "source",
+    "title": "Source Preview Started",
+    "description": "Camera 0843 preview started successfully.",
+    "destination": "Camera 0843",
+    "metadata": {
+      "sourceId": "1795781080861",
+      "sourceType": "camera",
+      "action": "preview_started"
+    },
+    "timestamp": "2026-11-27T12:04:47.951Z",
+    "createdAt": "2026-11-27T12:04:47.951Z"
+  },
+  {
+    "id": 1795781081400,
+    "userId": "user_1795762052426",
+    "type": "success",
+    "category": "source",
+    "title": "Source Added",
+    "description": "Camera 0843 was added to the source manager.",
+    "destination": "Camera 0843",
+    "metadata": {
+      "sourceId": "1795781080861",
+      "sourceType": "camera",
+      "action": "source_added"
+    },
+    "timestamp": "2026-11-27T12:04:40.901Z",
+    "createdAt": "2026-11-27T12:04:40.901Z"
+  },
+  {
+    "id": 1795779942308,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-27T07:44:49.076Z",
+      "currentStartedAt": "2026-11-27T11:45:41.971Z"
+    },
+    "timestamp": "2026-11-27T11:45:41.984Z",
+    "createdAt": "2026-11-27T11:45:41.984Z"
+  },
+  {
+    "id": 1795765490065,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-27T07:28:46.138Z",
+      "currentStartedAt": "2026-11-27T07:44:49.076Z"
+    },
+    "timestamp": "2026-11-27T07:44:49.095Z",
+    "createdAt": "2026-11-27T07:44:49.095Z"
+  },
+  {
     "id": 1795765420823,
     "userId": "user_1795709223413",
     "type": "warning",

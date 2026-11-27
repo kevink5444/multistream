@@ -51,7 +51,14 @@ const connectYouTube = (req, res) => {
    GET /api/oauth/youtube/callback
    ========================================================= */
 
+/* =========================================================
+   YOUTUBE OAUTH CALLBACK
+   GET /api/oauth/youtube/callback
+   ========================================================= */
+
 const youtubeCallback = async (req, res) => {
+    const FRONTEND_URL = "http://localhost:5173";
+
     try {
         const {
             code,
@@ -62,20 +69,21 @@ const youtubeCallback = async (req, res) => {
         /* Authorization denied */
 
         if (error) {
-            return res.status(400).json({
-                success: false,
-                message: "YouTube authorization was denied.",
-                error,
-            });
+            return res.redirect(
+                `${FRONTEND_URL}/oauth/youtube/callback?status=error&message=${encodeURIComponent(
+                    "YouTube authorization was denied."
+                )}`
+            );
         }
 
         /* Validate OAuth parameters */
 
         if (!code || !state) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing OAuth code or state.",
-            });
+            return res.redirect(
+                `${FRONTEND_URL}/oauth/youtube/callback?status=error&message=${encodeURIComponent(
+                    "Missing OAuth code or state."
+                )}`
+            );
         }
 
         /* Validate OAuth state */
@@ -83,10 +91,11 @@ const youtubeCallback = async (req, res) => {
         const savedState = oauthStates.get(state);
 
         if (!savedState) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid OAuth state.",
-            });
+            return res.redirect(
+                `${FRONTEND_URL}/oauth/youtube/callback?status=error&message=${encodeURIComponent(
+                    "Invalid OAuth state."
+                )}`
+            );
         }
 
         oauthStates.delete(state);
@@ -98,17 +107,23 @@ const youtubeCallback = async (req, res) => {
             10 * 60 * 1000;
 
         if (stateExpired) {
-            return res.status(400).json({
-                success: false,
-                message: "OAuth session expired. Please try again.",
-            });
+            return res.redirect(
+                `${FRONTEND_URL}/oauth/youtube/callback?status=error&message=${encodeURIComponent(
+                    "OAuth session expired. Please try again."
+                )}`
+            );
         }
+
+        /* Check session */
+
         if (savedState.sessionID !== req.sessionID) {
-            return res.status(403).json({
-                success: false,
-                message: "OAuth session mismatch. Please try again.",
-            });
+            return res.redirect(
+                `${FRONTEND_URL}/oauth/youtube/callback?status=error&message=${encodeURIComponent(
+                    "OAuth session mismatch. Please try again."
+                )}`
+            );
         }
+
         /* Exchange authorization code */
 
         const tokens = await exchangeCode(code);
@@ -129,17 +144,15 @@ const youtubeCallback = async (req, res) => {
 
         const channelInfo = await getChannelInfo(tokens);
 
-        /* Save tokens securely */
+        /* Save tokens */
 
         saveTokens(tokens);
 
-        /* Successful connection */
+        /* Redirect to frontend success page */
 
-        res.json({
-            success: true,
-            message: "YouTube connected successfully.",
-            channel: channelInfo,
-        });
+        return res.redirect(
+            `${FRONTEND_URL}/oauth/youtube/callback?status=success`
+        );
 
     } catch (error) {
         console.error(
@@ -147,10 +160,11 @@ const youtubeCallback = async (req, res) => {
             error.message
         );
 
-        res.status(500).json({
-            success: false,
-            message: "Failed to connect YouTube account.",
-        });
+        return res.redirect(
+            `${FRONTEND_URL}/oauth/youtube/callback?status=error&message=${encodeURIComponent(
+                "Failed to connect YouTube account."
+            )}`
+        );
     }
 };
 

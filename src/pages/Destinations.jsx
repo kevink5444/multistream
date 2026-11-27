@@ -28,6 +28,7 @@ import {
   FaTwitch,
   FaFacebook,
   FaInstagram,
+  FaTiktok,
 } from "react-icons/fa";
 
 import { api } from "../services/api";
@@ -70,6 +71,15 @@ const platformConfig = {
     bg: "bg-pink-500/10",
     border: "border-pink-500/20",
     icon: FaInstagram,
+    serverUrl: "",
+  },
+
+  tiktok: {
+    name: "TikTok",
+    color: "text-white",
+    bg: "bg-white/5",
+    border: "border-white/10",
+    icon: FaTiktok,
     serverUrl: "",
   },
 
@@ -131,6 +141,7 @@ const mapDestination = (destination) => {
     id: destination.id,
     name: destination.name,
     platform: destination.platform,
+    connectionMethod: destination.connectionMethod || "manual",
 
     serverUrl: destination.streamUrl || "",
     streamKey,
@@ -322,6 +333,7 @@ function DestinationModal({
   destination,
   onClose,
   onSave,
+  onAutomatic,
   saving,
 }) {
   const [name, setName] = useState(
@@ -342,16 +354,17 @@ function DestinationModal({
   );
 
   const [showKey, setShowKey] = useState(false);
-  const [connectionMethod, setConnectionMethod] = useState("manual");
+  const [connectionMethod, setConnectionMethod] = useState(
+    destination?.connectionMethod || "manual"
+  );
 
   /* CHANGE PLATFORM */
 
   const handlePlatformChange = (value) => {
     setPlatform(value);
-
-    setServerUrl(
-      platformConfig[value]?.serverUrl || ""
-    );
+    setConnectionMethod("manual");
+    setServerUrl(platformConfig[value]?.serverUrl || "");
+    setStreamKey("");
   };
 
   /* SUBMIT */
@@ -359,13 +372,21 @@ function DestinationModal({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (connectionMethod === "automatic") {
+      if (platform === "youtube") {
+        onAutomatic?.();
+      }
+      return;
+    }
+
     const destinationData = {
       name,
       platform,
-      streamUrl: serverUrl,
-      streamKey,
+      connectionMethod: "manual",
+      streamUrl: serverUrl.trim(),
+      streamKey: streamKey.trim(),
 
-      status: streamKey
+      status: streamKey.trim()
         ? "connected"
         : "pending",
     };
@@ -448,76 +469,85 @@ function DestinationModal({
               <option value="twitch">Twitch</option>
               <option value="facebook">Facebook</option>
               <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
               <option value="kick">Kick</option>
               <option value="custom">Custom RTMP</option>
             </select>
 
           </div>
-              {/* CONNECTION METHOD */}
+          {/* CONNECTION METHOD */}
 
-<div>
-  <label className="mb-2 block text-sm text-zinc-300">
-    Connection Method
-  </label>
+          <div>
+            <label className="mb-2 block text-sm text-zinc-300">
+              Connection Method
+            </label>
 
-  <div className="grid grid-cols-2 gap-3">
-    {/* AUTOMATIC */}
-    <button
-      type="button"
-      disabled
-      className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-left opacity-60 cursor-not-allowed"
-    >
-      <div className="flex items-center gap-2">
-        <ShieldCheck className="h-5 w-5 text-indigo-400" />
+            {platform === "youtube" || platform === "facebook" ? (
+              <div className="grid grid-cols-2 gap-3">
+                {/* AUTOMATIC */}
+                <button
+                  type="button"
+                  disabled={platform === "facebook"}
+                  onClick={() => {
+                    if (platform === "youtube") onAutomatic?.();
+                  }}
+                  className={`rounded-xl border p-4 text-left transition ${
+                    platform === "youtube"
+                      ? "border-indigo-500/40 bg-indigo-500/10 hover:bg-indigo-500/15"
+                      : "border-white/10 bg-white/[0.02] opacity-60 cursor-not-allowed"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-indigo-400" />
+                    <span className="text-sm font-medium text-white">Automatic</span>
+                  </div>
 
-        <span className="text-sm font-medium text-white">
-          Automatic
-        </span>
-      </div>
+                  <p className="mt-2 text-xs text-zinc-500">
+                    {platform === "youtube" ? "YouTube Integration" : "Facebook Integration"}
+                  </p>
 
-      <p className="mt-2 text-xs text-zinc-500">
-        OAuth / API Connection
-      </p>
+                  <span className={`mt-3 inline-block rounded-full px-2 py-1 text-[10px] ${
+                    platform === "youtube"
+                      ? "bg-emerald-500/10 text-emerald-400"
+                      : "bg-white/5 text-zinc-500"
+                  }`}>
+                    {platform === "youtube" ? "Available" : "Coming Soon"}
+                  </span>
+                </button>
 
-      <span className="mt-3 inline-block rounded-full bg-white/5 px-2 py-1 text-[10px] text-zinc-500">
-        Coming Soon
-      </span>
-    </button>
+                {/* MANUAL */}
+                <button
+                  type="button"
+                  onClick={() => setConnectionMethod("manual")}
+                  className={`rounded-xl border p-4 text-left transition ${
+                    connectionMethod === "manual"
+                      ? "border-indigo-500/40 bg-indigo-500/10"
+                      : "border-white/10 bg-white/[0.02] hover:bg-white/5"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Server className={`h-5 w-5 ${connectionMethod === "manual" ? "text-indigo-400" : "text-zinc-400"}`} />
+                    <span className="text-sm font-medium text-white">Manual</span>
+                  </div>
 
-    {/* MANUAL */}
-    <button
-      type="button"
-      onClick={() => setConnectionMethod("manual")}
-      className={`rounded-xl border p-4 text-left transition ${
-        connectionMethod === "manual"
-          ? "border-indigo-500/40 bg-indigo-500/10"
-          : "border-white/10 bg-white/[0.02] hover:bg-white/5"
-      }`}
-    >
-      <div className="flex items-center gap-2">
-        <Server
-          className={`h-5 w-5 ${
-            connectionMethod === "manual"
-              ? "text-indigo-400"
-              : "text-zinc-400"
-          }`}
-        />
-
-        <span className="text-sm font-medium text-white">
-          Manual
-        </span>
-      </div>
-
-      <p className="mt-2 text-xs text-zinc-500">
-        RTMP Configuration
-      </p>
-
-      <span className="mt-3 inline-block rounded-full bg-indigo-500/10 px-2 py-1 text-[10px] text-indigo-400">
-        Available
-      </span>
-    </button>
-  </div>
-</div>
+                  <p className="mt-2 text-xs text-zinc-500">RTMP Configuration</p>
+                  <span className="mt-3 inline-block rounded-full bg-indigo-500/10 px-2 py-1 text-[10px] text-indigo-400">Available</span>
+                </button>
+              </div>
+            ) : (
+              /* MANUAL-ONLY PLATFORMS */
+              <div className="rounded-xl border border-indigo-500/40 bg-indigo-500/10 p-4">
+                <div className="flex items-center gap-2">
+                  <Server className="h-5 w-5 text-indigo-400" />
+                  <span className="text-sm font-medium text-white">Manual RTMP</span>
+                </div>
+                <p className="mt-2 text-xs text-zinc-500">
+                  Configure your server URL and stream key.
+                </p>
+                <span className="mt-3 inline-block rounded-full bg-indigo-500/10 px-2 py-1 text-[10px] text-indigo-400">Available</span>
+              </div>
+            )}
+          </div>
           {/* SERVER URL */}
 
           <div>
@@ -906,23 +936,25 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
     }
   };
 
-  const connectYouTube = () => {
-    setError("");
+const connectYouTube = () => {
+  setError("");
 
-    // Open synchronously so the browser does not block the OAuth popup.
-    oauthPopupRef.current = window.open(
-      "http://localhost:5000/api/oauth/youtube",
-      "multistream_youtube_oauth",
-      "width=600,height=750,left=200,top=100"
+  const oauthTab = window.open(
+    "http://localhost:5173/oauth/youtube/connecting",
+    "_blank"
+  );
+
+  if (!oauthTab) {
+    setError(
+      "Browser blocked the OAuth tab. Please allow popups for MultiStream and try again."
     );
+    return;
+  }
 
-    if (!oauthPopupRef.current) {
-      setError("Popup blocked by browser. Please allow popups for MultiStream and try again.");
-      return;
-    }
+  oauthPopupRef.current = oauthTab;
 
-    setYoutubeActionLoading(true);
-  };
+  setYoutubeActionLoading(true);
+};
 
   const disconnectYouTube = async () => {
     const confirmed = window.confirm("Disconnect the YouTube account from MultiStream?");
@@ -1232,6 +1264,19 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  /* YOUTUBE AUTOMATIC FROM DESTINATION MODAL */
+
+  const handleYouTubeAutomatic = () => {
+    setModalOpen(false);
+    setEditingDestination(null);
+
+    if (youtubeConnected) {
+      setYoutubeLiveModalOpen(true);
+    } else {
+      connectYouTube();
     }
   };
 
@@ -1922,6 +1967,7 @@ function YouTubeLiveModal({ onClose, onCreate, creating }) {
             }
           }}
           onSave={saveDestination}
+          onAutomatic={handleYouTubeAutomatic}
           saving={saving}
         />
       )}

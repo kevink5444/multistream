@@ -47,10 +47,22 @@
     "id": "user_1795762052426",
     "name": "Test1",
     "email": "test1@example.com",
-    "passwordHash": "$2b$12$Ale0y0cp3fHGV0tiV8xrJe4A/jsxKTXHvMyGOChd8S./Pzvq.nSvK",
+    "passwordHash": "$2b$12$xIQfOr018aVdih/wnIcHBuhWgwZ3meJLdN7gaAYQhfYldzswI91Ui",
     "role": "user",
     "channelLimit": 2,
     "status": "active",
     "createdAt": "2026-11-27T06:47:32.426Z"
+  },
+  {
+    "id": "user_1795786454920",
+    "name": "Kevin",
+    "email": "kevinkurniawan90812@gmail.com",
+    "passwordHash": "$2b$12$sSU9yH1Tlsbrq9bjxlBW7utcTn/saoc7/kVlb1fgcUptYkDzjspYq",
+    "role": "user",
+    "channelLimit": 2,
+    "status": "active",
+    "createdAt": "2026-11-27T13:34:14.920Z",
+    "resetPasswordToken": "f7a0f61e81905fa3effb0eb692a76bb4b5577f3b60cb7fc7c8b7824165e37570",
+    "resetPasswordExpires": 1795788265534
   }
 ]

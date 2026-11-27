@@ -135,16 +135,19 @@ const createLiveConfiguration = async (req, res) => {
 
         /* SAVE DESTINATION AUTOMATICALLY */
 
-        const destination =
-            destinationService.createDestination({
-                name: title.trim(),
-                platform: "youtube",
-                status: "pending",
-                streamUrl:
-                    configuration.rtmp.serverUrl,
-                streamKey:
-                    configuration.rtmp.streamKey,
-            });
+       const destination =
+    destinationService.createDestination(
+        {
+            name: title.trim(),
+            platform: "youtube",
+            status: "pending",
+            streamUrl:
+                configuration.rtmp.serverUrl,
+            streamKey:
+                configuration.rtmp.streamKey,
+        },
+        req.session.user
+    );
 
         /* GENERATE LIVE STUDIO URL */
 
