@@ -1,4 +1,3 @@
-
 import {
   BarChart3,
   ChevronLeft,
@@ -13,7 +12,12 @@ import {
   X,
   Zap,
   Layers3,
+  ClipboardCheck,
 } from "lucide-react";
+
+/* =========================================================
+   NAVIGATION ITEMS
+========================================================= */
 
 const navigationItems = [
   {
@@ -36,6 +40,7 @@ const navigationItems = [
       },
     ],
   },
+
   {
     title: "Monitoring",
     items: [
@@ -51,6 +56,7 @@ const navigationItems = [
       },
     ],
   },
+
   {
     title: "System",
     items: [
@@ -71,9 +77,26 @@ const navigationItems = [
       },
     ],
   },
+
+  {
+    title: "Administration",
+    adminOnly: true,
+    items: [
+      {
+        name: "Channel Limit Requests",
+        icon: ClipboardCheck,
+        id: "admin-channel-limit-requests",
+      },
+    ],
+  },
 ];
 
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
 function Sidebar({
+  user,
   activePage = "dashboard",
   onNavigate,
   isCollapsed = false,
@@ -81,38 +104,77 @@ function Sidebar({
   mobileOpen = false,
   onCloseMobile,
 }) {
+  const isAdmin = user?.role === "admin";
+
+  const visibleNavigationItems =
+    navigationItems.filter((section) => {
+      if (section.adminOnly && !isAdmin) {
+        return false;
+      }
+
+      return true;
+    });
+
+  /* =======================================================
+     NAVIGATION HANDLER
+  ======================================================= */
+
   const handleNavigation = (pageId) => {
     onNavigate?.(pageId);
     onCloseMobile?.();
   };
 
+  /* =======================================================
+     COMPONENT
+  ======================================================= */
+
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* ===================================================
+         MOBILE OVERLAY
+      =================================================== */}
+
       {mobileOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="
+            fixed inset-0 z-40
+            bg-black/60 backdrop-blur-sm
+            lg:hidden
+          "
           onClick={onCloseMobile}
           aria-label="Close sidebar"
         />
       )}
 
-      {/* Sidebar */}
+      {/* ===================================================
+         SIDEBAR
+      =================================================== */}
+
       <aside
         className={`
-          fixed left-0 top-0 z-50 flex h-screen flex-col
+          fixed left-0 top-0 z-50
+          flex h-screen flex-col
           border-r border-white/[0.06]
           bg-[#0B0D12]
-          transition-all duration-300 ease-in-out
+          transition-all duration-300
+          ease-in-out
 
           ${isCollapsed ? "w-[80px]" : "w-[260px]"}
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+
+          ${
+            mobileOpen
+              ? "translate-x-0"
+              : "-translate-x-full"
+          }
 
           lg:translate-x-0
         `}
       >
-        {/* Logo */}
+        {/* =================================================
+           LOGO
+        ================================================= */}
+
         <div className="flex h-[76px] items-center justify-between border-b border-white/[0.06] px-5">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 shadow-lg shadow-violet-500/20">
@@ -132,21 +194,28 @@ function Sidebar({
             )}
           </div>
 
-          {/* Close Mobile */}
+          {/* MOBILE CLOSE */}
+
           <button
             type="button"
             onClick={onCloseMobile}
-            className="rounded-lg p-2 text-gray-400 hover:bg-white/5 hover:text-white lg:hidden"
+            className="rounded-lg p-2 text-gray-400 transition hover:bg-white/5 hover:text-white lg:hidden"
             aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Navigation */}
+        {/* =================================================
+           NAVIGATION
+        ================================================= */}
+
         <div className="flex-1 overflow-y-auto px-3 py-5">
-          {navigationItems.map((section) => (
-            <div key={section.title} className="mb-7">
+          {visibleNavigationItems.map((section) => (
+            <div
+              key={section.title}
+              className="mb-7"
+            >
               {!isCollapsed && (
                 <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500">
                   {section.title}
@@ -156,16 +225,25 @@ function Sidebar({
               <div className="space-y-1">
                 {section.items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = activePage === item.id;
+
+                  const isActive =
+                    activePage === item.id;
 
                   return (
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => handleNavigation(item.id)}
-                      title={isCollapsed ? item.name : undefined}
+                      onClick={() =>
+                        handleNavigation(item.id)
+                      }
+                      title={
+                        isCollapsed
+                          ? item.name
+                          : undefined
+                      }
                       className={`
-                        group relative flex w-full items-center gap-3
+                        group relative flex w-full
+                        items-center gap-3
                         rounded-xl px-3 py-2.5
                         text-sm transition-all duration-200
 
@@ -175,18 +253,25 @@ function Sidebar({
                             : "text-gray-400 hover:bg-white/[0.04] hover:text-white"
                         }
 
-                        ${isCollapsed ? "justify-center" : ""}
+                        ${
+                          isCollapsed
+                            ? "justify-center"
+                            : ""
+                        }
                       `}
                     >
-                      {/* Active Indicator */}
+                      {/* ACTIVE INDICATOR */}
+
                       {isActive && (
                         <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-violet-500" />
                       )}
 
+                      {/* ICON */}
+
                       <Icon
                         className={`
-                          h-[18px] w-[18px] shrink-0
-                          transition-colors
+                          h-[18px] w-[18px]
+                          shrink-0 transition-colors
 
                           ${
                             isActive
@@ -195,6 +280,8 @@ function Sidebar({
                           }
                         `}
                       />
+
+                      {/* LABEL */}
 
                       {!isCollapsed && (
                         <span className="flex-1 text-left font-medium">
@@ -209,13 +296,22 @@ function Sidebar({
           ))}
         </div>
 
-        {/* System Status */}
+        {/* =================================================
+           SYSTEM STATUS
+        ================================================= */}
+
         <div className="border-t border-white/[0.06] px-3 py-4">
           <div
             className={`
-              flex items-center gap-3 rounded-xl
-              bg-white/[0.02] px-3 py-3
-              ${isCollapsed ? "justify-center" : ""}
+              flex items-center gap-3
+              rounded-xl bg-white/[0.02]
+              px-3 py-3
+
+              ${
+                isCollapsed
+                  ? "justify-center"
+                  : ""
+              }
             `}
           >
             <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
@@ -238,18 +334,26 @@ function Sidebar({
           </div>
         </div>
 
-        {/* Collapse Button */}
+        {/* =================================================
+           COLLAPSE BUTTON
+        ================================================= */}
+
         <div className="hidden border-t border-white/[0.06] p-3 lg:block">
           <button
             type="button"
             onClick={onToggleCollapse}
             className={`
-              flex w-full items-center gap-3 rounded-lg
-              px-3 py-2 text-gray-500
-              transition-colors hover:bg-white/[0.04]
+              flex w-full items-center gap-3
+              rounded-lg px-3 py-2
+              text-gray-500 transition-colors
+              hover:bg-white/[0.04]
               hover:text-white
 
-              ${isCollapsed ? "justify-center" : ""}
+              ${
+                isCollapsed
+                  ? "justify-center"
+                  : ""
+              }
             `}
             aria-label="Toggle sidebar"
           >

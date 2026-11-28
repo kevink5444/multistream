@@ -7,12 +7,12 @@
     "currentLimit": 2,
     "requestedLimit": 3,
     "reason": "permintaan untuk ke 3 channel",
-    "status": "pending",
+    "status": "approved",
     "adminNote": null,
-    "reviewedBy": null,
-    "reviewedAt": null,
+    "reviewedBy": "admin_1795333246880",
+    "reviewedAt": "2026-11-28T08:51:14.132Z",
     "createdAt": "2026-11-27T04:45:11.869Z",
-    "updatedAt": "2026-11-27T04:45:11.869Z"
+    "updatedAt": "2026-11-28T08:51:14.132Z"
   },
   {
     "id": "clr_1795847780967_4t4jf9",
@@ -22,11 +22,11 @@
     "currentLimit": 2,
     "requestedLimit": 5,
     "reason": "Permintaan kurang channel limit",
-    "status": "pending",
+    "status": "rejected",
     "adminNote": null,
-    "reviewedBy": null,
-    "reviewedAt": null,
+    "reviewedBy": "admin_1795333246880",
+    "reviewedAt": "2026-11-28T08:52:25.785Z",
     "createdAt": "2026-11-28T06:36:20.967Z",
-    "updatedAt": "2026-11-28T06:36:20.967Z"
+    "updatedAt": "2026-11-28T08:52:25.785Z"
   }
 ]

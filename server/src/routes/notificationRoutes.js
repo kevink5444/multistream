@@ -1,3 +1,4 @@
+
 /* =========================================================
    NOTIFICATION ROUTES
    ========================================================= */
@@ -24,13 +25,17 @@ router.use(requireAuth);
    ROUTES
    ========================================================= */
 
+// Get notifications milik user yang sedang login
 router.get("/", getNotifications);
 
-// Harus sebelum route dengan parameter ID
+// Mark all notifications as read
+// Harus diletakkan sebelum route dengan parameter ID
 router.patch("/read-all", markAllNotificationsAsRead);
 
+// Mark one notification as read
 router.patch("/:id/read", markNotificationAsRead);
 
+// Clear notifications
 router.delete("/", clearNotifications);
 
 /* =========================================================

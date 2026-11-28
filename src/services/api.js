@@ -1,3 +1,4 @@
+
 /* =========================================================
    MULTISTREAM API SERVICE
    ========================================================= */
@@ -40,16 +41,17 @@ async function apiRequest(endpoint, options = {}) {
    ========================================================= */
 
 export const api = {
-  /* -------------------------------------------------------
+  /* =========================================================
      SYSTEM STATUS
-     ------------------------------------------------------- */
+     ========================================================= */
 
   async getStatus() {
     return apiRequest("/api/status");
   },
-/* =========================================================
-   UPDATE USER PROFILE
-   ========================================================= */
+
+  /* =========================================================
+     UPDATE USER PROFILE
+     ========================================================= */
 
   async updateProfile(profileData) {
     return apiRequest("/api/auth/profile", {
@@ -57,25 +59,18 @@ export const api = {
       body: JSON.stringify(profileData),
     });
   },
-  /* -------------------------------------------------------
-     GET ALL DESTINATIONS
-     ------------------------------------------------------- */
+
+  /* =========================================================
+     DESTINATIONS API
+     ========================================================= */
 
   async getDestinations() {
     return apiRequest("/api/destinations");
   },
 
-  /* -------------------------------------------------------
-     GET DESTINATION BY ID
-     ------------------------------------------------------- */
-
   async getDestinationById(id) {
     return apiRequest(`/api/destinations/${id}`);
   },
-
-  /* -------------------------------------------------------
-     CREATE DESTINATION
-     ------------------------------------------------------- */
 
   async createDestination(destinationData) {
     return apiRequest("/api/destinations", {
@@ -84,10 +79,6 @@ export const api = {
     });
   },
 
-  /* -------------------------------------------------------
-     UPDATE DESTINATION
-     ------------------------------------------------------- */
-
   async updateDestination(id, destinationData) {
     return apiRequest(`/api/destinations/${id}`, {
       method: "PUT",
@@ -95,73 +86,68 @@ export const api = {
     });
   },
 
-  /* -------------------------------------------------------
-     DELETE DESTINATION
-     ------------------------------------------------------- */
-
   async deleteDestination(id) {
     return apiRequest(`/api/destinations/${id}`, {
       method: "DELETE",
     });
   },
 
- /* =========================================================
-   SOURCES API
-   ========================================================= */
+  /* =========================================================
+     SOURCES API
+     ========================================================= */
 
-    async getSources() {
-      return apiRequest("/api/sources");
-    },
+  async getSources() {
+    return apiRequest("/api/sources");
+  },
 
-    async getSourceById(id) {
-      return apiRequest(`/api/sources/${id}`);
-    },
+  async getSourceById(id) {
+    return apiRequest(`/api/sources/${id}`);
+  },
 
-    async createSource(data) {
-     return apiRequest("/api/sources", {
+  async createSource(data) {
+    return apiRequest("/api/sources", {
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
-    async updateSource(id, data) {
-      return apiRequest(`/api/sources/${id}`, {
+  async updateSource(id, data) {
+    return apiRequest(`/api/sources/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     });
   },
 
-    async deleteSource(id) {
+  async deleteSource(id) {
     return apiRequest(`/api/sources/${id}`, {
-     method: "DELETE",
-   });
- },
+      method: "DELETE",
+    });
+  },
+
   /* =========================================================
-   ACTIVITY LOG API
-   ========================================================= */
+     ACTIVITY LOG API
+     ========================================================= */
 
-async getActivityLogs() {
-  return apiRequest("/api/activity-logs");
-},
-/* -------------------------------------------------------
-   CREATE ACTIVITY LOG
-   ------------------------------------------------------- */
+  async getActivityLogs() {
+    return apiRequest("/api/activity-logs");
+  },
 
-async createActivityLog(logData) {
-  return apiRequest("/api/activity-logs", {
-    method: "POST",
-    body: JSON.stringify(logData),
-  });
-},
-async clearActivityLogs() {
-  return apiRequest("/api/activity-logs", {
-    method: "DELETE",
-  });
-},
+  async createActivityLog(logData) {
+    return apiRequest("/api/activity-logs", {
+      method: "POST",
+      body: JSON.stringify(logData),
+    });
+  },
 
-  /* -------------------------------------------------------
-     GET FORWARDER STATUSES
-     ------------------------------------------------------- */
+  async clearActivityLogs() {
+    return apiRequest("/api/activity-logs", {
+      method: "DELETE",
+    });
+  },
+
+  /* =========================================================
+     FORWARDER STATUS API
+     ========================================================= */
 
   async getForwarderStatuses() {
     return apiRequest("/api/forwarders/status");
@@ -192,31 +178,78 @@ async clearActivityLogs() {
       method: "DELETE",
     });
   },
+
   /* =========================================================
-   CHANNEL LIMIT REQUEST API
-   ========================================================= */
+     CHANNEL LIMIT REQUEST API
+     ========================================================= */
 
-    async getChannelLimitStatus() {
-     return apiRequest(
-      "/api/channel-limit-requests/my/status"
-    );
+  /* ---------------------------------------------------------
+     USER: GET CHANNEL LIMIT STATUS
+     --------------------------------------------------------- */
+
+  async getChannelLimitStatus() {
+    return apiRequest("/api/channel-limit-requests/my/status");
   },
 
-    async getMyChannelLimitRequests() {
-      return apiRequest(
-      "/api/channel-limit-requests/my"
-    );
+  /* ---------------------------------------------------------
+     USER: GET MY REQUEST HISTORY
+     --------------------------------------------------------- */
+
+  async getMyChannelLimitRequests() {
+    return apiRequest("/api/channel-limit-requests/my");
   },
 
-    async createChannelLimitRequest(requestData) {
-      return apiRequest(
-    "/api/channel-limit-requests",
-    {
+  /* ---------------------------------------------------------
+     USER: CREATE CHANNEL LIMIT REQUEST
+     --------------------------------------------------------- */
+
+  async createChannelLimitRequest(requestData) {
+    return apiRequest("/api/channel-limit-requests", {
       method: "POST",
       body: JSON.stringify(requestData),
-    }
-  );
-},
+    });
+  },
+
+  /* ---------------------------------------------------------
+     USER: CANCEL CHANNEL LIMIT REQUEST
+     --------------------------------------------------------- */
+
+  async cancelChannelLimitRequest(id) {
+    return apiRequest(`/api/channel-limit-requests/${id}/cancel`, {
+      method: "PATCH",
+    });
+  },
+
+  /* ---------------------------------------------------------
+     ADMIN: GET ALL CHANNEL LIMIT REQUESTS
+     --------------------------------------------------------- */
+
+  async getAllChannelLimitRequests() {
+    return apiRequest("/api/channel-limit-requests/admin");
+  },
+
+  /* ---------------------------------------------------------
+     ADMIN: APPROVE CHANNEL LIMIT REQUEST
+     --------------------------------------------------------- */
+
+  async approveChannelLimitRequest(id) {
+    return apiRequest(`/api/channel-limit-requests/${id}/approve`, {
+      method: "PATCH",
+    });
+  },
+
+  /* ---------------------------------------------------------
+     ADMIN: REJECT CHANNEL LIMIT REQUEST
+     --------------------------------------------------------- */
+
+  async rejectChannelLimitRequest(id, rejectionNote = "") {
+    return apiRequest(`/api/channel-limit-requests/${id}/reject`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        note: rejectionNote,
+      }),
+    });
+  },
 
   /* =========================================================
      SYSTEM INFORMATION API

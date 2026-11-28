@@ -1,6 +1,9 @@
-
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -15,60 +18,77 @@ import Settings from "../pages/Settings";
 import HelpCenter from "../pages/HelpCenter";
 import ChannelLimitRequest from "../pages/ChannelLimitRequest";
 
-// =====================================
-// PAGE CONFIGURATION
-// =====================================
+import AdminChannelLimitRequests from "../pages/AdminChannelLimitRequests";
+
+/* =========================================================
+   PAGE CONFIGURATION
+========================================================= */
 
 const pageConfig = {
   dashboard: {
     title: "Dashboard",
-    description: "Monitor your streaming performance.",
+    description:
+      "Monitor your streaming performance.",
   },
 
   sources: {
     title: "Stream Sources",
-    description: "Manage your incoming stream sources.",
+    description:
+      "Manage your incoming stream sources.",
   },
 
   destinations: {
     title: "Destinations",
-    description: "Manage your streaming platforms.",
+    description:
+      "Manage your streaming platforms.",
   },
 
   analytics: {
     title: "Analytics",
-    description: "Analyze your streaming performance.",
+    description:
+      "Analyze your streaming performance.",
   },
 
   logs: {
     title: "System Logs",
-    description: "Monitor system events and logs.",
+    description:
+      "Monitor system events and logs.",
   },
 
   settings: {
     title: "Settings",
-    description: "Configure your MultiStream application.",
+    description:
+      "Configure your MultiStream application.",
   },
 
   help: {
     title: "Help Center",
-    description: "Get help using MultiStream.",
+    description:
+      "Get help using MultiStream.",
   },
 
   profile: {
     title: "My Profile",
-    description: "Manage your account information.",
+    description:
+      "Manage your account information.",
   },
 
   "channel-limit-request": {
     title: "Channel Limit Request",
-    description: "Request additional streaming channel capacity.",
+    description:
+      "Request additional streaming channel capacity.",
+  },
+
+  "admin-channel-limit-requests": {
+    title: "Channel Limit Requests",
+    description:
+      "Review and manage channel limit requests.",
   },
 };
 
-// =====================================
-// DASHBOARD LAYOUT
-// =====================================
+/* =========================================================
+   DASHBOARD LAYOUT
+========================================================= */
 
 function DashboardLayout({
   user,
@@ -78,37 +98,38 @@ function DashboardLayout({
   const location = useLocation();
   const navigate = useNavigate();
 
-  // =====================================
-  // CURRENT PAGE
-  // =====================================
+  /* =======================================================
+     CURRENT PAGE
+  ======================================================= */
 
   const activePage =
-    location.pathname.split("/").filter(Boolean)[0] ||
-    "dashboard";
+    location.pathname
+      .split("/")
+      .filter(Boolean)[0] || "dashboard";
 
-  // DEBUG - TEMPORARY
-  console.log("CURRENT PATH:", location.pathname);
-  console.log("ACTIVE PAGE:", activePage);
+  /* =======================================================
+     SIDEBAR STATE
+  ======================================================= */
 
-  // =====================================
-  // SIDEBAR STATE
-  // =====================================
+  const [isCollapsed, setIsCollapsed] =
+    useState(false);
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] =
+    useState(false);
 
-  // =====================================
-  // NAVIGATION
-  // =====================================
+  /* =======================================================
+     NAVIGATION
+  ======================================================= */
 
   const handleNavigate = (page) => {
     navigate(`/${page}`);
+
     setMobileOpen(false);
   };
 
-  // =====================================
-  // SIDEBAR HANDLERS
-  // =====================================
+  /* =======================================================
+     SIDEBAR HANDLERS
+  ======================================================= */
 
   const handleToggleCollapse = () => {
     setIsCollapsed((previous) => !previous);
@@ -122,16 +143,17 @@ function DashboardLayout({
     setMobileOpen(false);
   };
 
-  // =====================================
-  // PAGE CONFIGURATION
-  // =====================================
+  /* =======================================================
+     PAGE CONFIGURATION
+  ======================================================= */
 
   const currentPage =
-    pageConfig[activePage] || pageConfig.dashboard;
+    pageConfig[activePage] ||
+    pageConfig.dashboard;
 
-  // =====================================
-  // PAGE CONTENT
-  // =====================================
+  /* =======================================================
+     PAGE CONTENT
+  ======================================================= */
 
   const renderPage = () => {
     switch (activePage) {
@@ -167,20 +189,39 @@ function DashboardLayout({
       case "channel-limit-request":
         return <ChannelLimitRequest />;
 
+      /* ===================================================
+         ADMIN PAGE
+      =================================================== */
+
+      case "admin-channel-limit-requests":
+        if (user?.role !== "admin") {
+          return (
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          );
+        }
+
+        return <AdminChannelLimitRequests />;
+
       default:
         return <Dashboard />;
     }
   };
 
-  // =====================================
-  // MAIN LAYOUT
-  // =====================================
+  /* =========================================================
+     MAIN LAYOUT
+  ========================================================= */
 
   return (
     <div className="min-h-screen bg-[#090B10] text-white">
+      {/* ===================================================
+         SIDEBAR
+      =================================================== */}
 
-      {/* SIDEBAR */}
       <Sidebar
+        user={user}
         activePage={activePage}
         onNavigate={handleNavigate}
         isCollapsed={isCollapsed}
@@ -189,10 +230,14 @@ function DashboardLayout({
         onCloseMobile={handleCloseMobileSidebar}
       />
 
-      {/* MAIN AREA */}
+      {/* ===================================================
+         MAIN AREA
+      =================================================== */}
+
       <div
         className={`
           min-h-screen transition-all duration-300
+
           ${
             isCollapsed
               ? "lg:pl-[80px]"
@@ -200,17 +245,27 @@ function DashboardLayout({
           }
         `}
       >
-        {/* TOPBAR */}
+        {/* =================================================
+           TOPBAR
+        ================================================= */}
+
         <Topbar
           pageTitle={currentPage.title}
           pageDescription={currentPage.description}
-          onOpenMobileSidebar={handleOpenMobileSidebar}
+          onOpenMobileSidebar={
+            handleOpenMobileSidebar
+          }
           user={user}
           onLogout={onLogout}
-          onNavigateProfile={() => handleNavigate("profile")}
+          onNavigateProfile={() =>
+            handleNavigate("profile")
+          }
         />
 
-        {/* CONTENT */}
+        {/* =================================================
+           CONTENT
+        ================================================= */}
+
         <main className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1600px]">
             {renderPage()}

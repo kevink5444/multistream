@@ -133,6 +133,7 @@ const findUserById = (id) => {
     (user) => user.id === id
   );
 };
+
 /* =========================================================
    UPDATE USER PROFILE
    ========================================================= */
@@ -176,19 +177,100 @@ const updateUserProfile = ({
     throw new Error("User not found.");
   }
 
-  // Update user data
   users[userIndex] = {
     ...users[userIndex],
     name: trimmedName,
     updatedAt: new Date().toISOString(),
   };
 
-  // Save permanently to users.json
   saveUsers(users);
 
-  // Return safe user data
   const updatedUser = users[userIndex];
 
+  return {
+    id: updatedUser.id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    role: updatedUser.role,
+    channelLimit: updatedUser.channelLimit,
+    status: updatedUser.status,
+    createdAt: updatedUser.createdAt,
+    updatedAt: updatedUser.updatedAt,
+  };
+};
+
+/* =========================================================
+   UPDATE USER CHANNEL LIMIT
+   ========================================================= */
+
+const updateUserChannelLimit = (
+  userId,
+  channelLimit
+) => {
+  if (!userId) {
+    throw new Error(
+      "User ID is required."
+    );
+  }
+
+  const normalizedChannelLimit = Number(
+    channelLimit
+  );
+
+  if (
+    !Number.isInteger(
+      normalizedChannelLimit
+    )
+  ) {
+    throw new Error(
+      "Channel limit must be a whole number."
+    );
+  }
+
+  if (
+    normalizedChannelLimit < 1 ||
+    normalizedChannelLimit > 100
+  ) {
+    throw new Error(
+      "Channel limit must be between 1 and 100."
+    );
+  }
+
+  const users = getAllUsers();
+
+  const userIndex = users.findIndex(
+    (user) => user.id === userId
+  );
+
+  if (userIndex === -1) {
+    throw new Error("User not found.");
+  }
+
+  const user = users[userIndex];
+
+  if (user.role === "admin") {
+    throw new Error(
+      "Administrator channel limit cannot be modified."
+    );
+  }
+
+  users[userIndex] = {
+    ...user,
+
+    channelLimit:
+      normalizedChannelLimit,
+
+    updatedAt: new Date().toISOString(),
+  };
+
+  saveUsers(users);
+
+  const updatedUser = users[userIndex];
+
+  /*
+   * Return safe user data.
+   * Never expose passwordHash or reset tokens.
+   */
   return {
     id: updatedUser.id,
     name: updatedUser.name,
@@ -294,20 +376,14 @@ const createPasswordResetToken = (email) => {
 
   const user = users[userIndex];
 
-  /* Generate random token */
-
   const resetToken = crypto
     .randomBytes(32)
     .toString("hex");
-
-  /* Hash token before storing */
 
   const resetTokenHash = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-
-  /* Token expires in 30 minutes */
 
   const expiresAt =
     Date.now() + 30 * 60 * 1000;
@@ -349,14 +425,10 @@ const resetPassword = async ({
 
   const users = getAllUsers();
 
-  /* Hash submitted token */
-
   const tokenHash = crypto
     .createHash("sha256")
     .update(token)
     .digest("hex");
-
-  /* Find user by reset token */
 
   const userIndex = users.findIndex(
     (user) =>
@@ -371,8 +443,6 @@ const resetPassword = async ({
 
   const user = users[userIndex];
 
-  /* Check token expiration */
-
   if (
     !user.resetPasswordExpires ||
     user.resetPasswordExpires <= Date.now()
@@ -382,22 +452,16 @@ const resetPassword = async ({
     );
   }
 
-  /* Hash new password */
-
   const passwordHash = await bcrypt.hash(
     password,
     12
   );
-
-  /* Remove reset token fields */
 
   const {
     resetPasswordToken,
     resetPasswordExpires,
     ...userWithoutResetToken
   } = user;
-
-  /* Update password */
 
   users[userIndex] = {
     ...userWithoutResetToken,
@@ -419,6 +483,7 @@ module.exports = {
   findUserById,
   registerUser,
   updateUserProfile,
+  updateUserChannelLimit,
   verifyPassword,
   createPasswordResetToken,
   resetPassword,

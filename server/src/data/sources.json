@@ -79,7 +79,8 @@
       "rtmpUrl": "",
       "device": "",
       "fileName": "",
-      "fileSize": 0
+      "fileSize": 0,
+      "inputStreamKey": "ms_live_6595a17014ded7141dd0ab5712fc93a6b95e4c3ffcfee4890bd1a000e15bdb9e"
     },
     "createdAt": "2026-11-27T07:15:00.000Z",
     "updatedAt": "2026-11-27T07:15:00.000Z"

@@ -38,10 +38,10 @@
     "email": "adit1@example.com",
     "passwordHash": "$2b$12$CdxfoLJFcTlM/b7DUO7x/OFM6nYwweZEySQ2PtZsY..9PCj6DYZ4K",
     "role": "user",
-    "channelLimit": 2,
+    "channelLimit": 3,
     "status": "active",
     "createdAt": "2026-11-26T16:07:03.413Z",
-    "updatedAt": "2026-11-26T16:19:50.204Z"
+    "updatedAt": "2026-11-28T08:51:14.126Z"
   },
   {
     "id": "user_1795762052426",

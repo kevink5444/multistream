@@ -307,5 +307,15 @@
     "streamKey": "xqhf-yf13-7hm6-w35j-90xt",
     "streamUrl": "rtmp://a.rtmp.youtube.com/live2",
     "createdAt": "2026-11-27T14:01:16.238Z"
+  },
+  {
+    "id": 40,
+    "userId": "admin_1795333246880",
+    "name": "test12211221",
+    "platform": "youtube",
+    "status": "pending",
+    "streamKey": "6rjt-kb2v-a0p5-x6tt-69u8",
+    "streamUrl": "rtmp://a.rtmp.youtube.com/live2",
+    "createdAt": "2026-11-28T09:05:55.300Z"
   }
 ]

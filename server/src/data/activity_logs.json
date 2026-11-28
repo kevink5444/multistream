@@ -1,5 +1,404 @@
 [
   {
+    "id": 1795877429989,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T13:16:25.164Z",
+      "currentStartedAt": "2026-11-28T14:50:29.617Z"
+    },
+    "timestamp": "2026-11-28T14:50:29.626Z",
+    "createdAt": "2026-11-28T14:50:29.626Z"
+  },
+  {
+    "id": 1795871785428,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T09:44:12.401Z",
+      "currentStartedAt": "2026-11-28T13:16:25.164Z"
+    },
+    "timestamp": "2026-11-28T13:16:25.174Z",
+    "createdAt": "2026-11-28T13:16:25.174Z"
+  },
+  {
+    "id": 1795859052425,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T09:37:54.780Z",
+      "currentStartedAt": "2026-11-28T09:44:12.401Z"
+    },
+    "timestamp": "2026-11-28T09:44:12.409Z",
+    "createdAt": "2026-11-28T09:44:12.409Z"
+  },
+  {
+    "id": 1795858675681,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T09:19:10.761Z",
+      "currentStartedAt": "2026-11-28T09:37:54.780Z"
+    },
+    "timestamp": "2026-11-28T09:37:54.786Z",
+    "createdAt": "2026-11-28T09:37:54.786Z"
+  },
+  {
+    "id": 1795857551537,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T09:19:06.249Z",
+      "currentStartedAt": "2026-11-28T09:19:10.761Z"
+    },
+    "timestamp": "2026-11-28T09:19:10.769Z",
+    "createdAt": "2026-11-28T09:19:10.769Z"
+  },
+  {
+    "id": 1795857546759,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T08:37:59.457Z",
+      "currentStartedAt": "2026-11-28T09:19:06.249Z"
+    },
+    "timestamp": "2026-11-28T09:19:06.256Z",
+    "createdAt": "2026-11-28T09:19:06.256Z"
+  },
+  {
+    "id": 1795855946446,
+    "userId": "user_1795762052426",
+    "type": "warning",
+    "category": "channel_limit",
+    "title": "Channel Limit Request Rejected",
+    "description": "Your channel limit request has been rejected.",
+    "destination": "Channel Limit Request",
+    "metadata": {
+      "requestId": "clr_1795847780967_4t4jf9",
+      "requestedLimit": 5,
+      "currentLimit": 2,
+      "adminNote": null,
+      "reviewedBy": "admin_1795333246880",
+      "reviewedByName": "Multistream",
+      "status": "rejected"
+    },
+    "timestamp": "2026-11-28T08:52:25.797Z",
+    "createdAt": "2026-11-28T08:52:25.797Z"
+  },
+  {
+    "id": 1795855874500,
+    "userId": "user_1795709223413",
+    "type": "success",
+    "category": "channel_limit",
+    "title": "Channel Limit Request Approved",
+    "description": "Your channel limit request has been approved. Your channel limit has been increased from 2 to 3 channels.",
+    "destination": "Channel Limit Request",
+    "metadata": {
+      "requestId": "clr_1795754711869_df8v5t",
+      "previousLimit": 2,
+      "newLimit": 3,
+      "reviewedBy": "admin_1795333246880",
+      "reviewedByName": "Multistream",
+      "status": "approved"
+    },
+    "timestamp": "2026-11-28T08:51:14.139Z",
+    "createdAt": "2026-11-28T08:51:14.139Z"
+  },
+  {
+    "id": 1795855079871,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T08:25:25.813Z",
+      "currentStartedAt": "2026-11-28T08:37:59.457Z"
+    },
+    "timestamp": "2026-11-28T08:37:59.464Z",
+    "createdAt": "2026-11-28T08:37:59.464Z"
+  },
+  {
+    "id": 1795854326795,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T08:03:25.514Z",
+      "currentStartedAt": "2026-11-28T08:25:25.813Z"
+    },
+    "timestamp": "2026-11-28T08:25:25.820Z",
+    "createdAt": "2026-11-28T08:25:25.820Z"
+  },
+  {
+    "id": 1795853005887,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T08:02:10.506Z",
+      "currentStartedAt": "2026-11-28T08:03:25.514Z"
+    },
+    "timestamp": "2026-11-28T08:03:25.524Z",
+    "createdAt": "2026-11-28T08:03:25.524Z"
+  },
+  {
+    "id": 1795852930600,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T08:02:09.638Z",
+      "currentStartedAt": "2026-11-28T08:02:10.506Z"
+    },
+    "timestamp": "2026-11-28T08:02:10.511Z",
+    "createdAt": "2026-11-28T08:02:10.511Z"
+  },
+  {
+    "id": 1795852930062,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:47:29.680Z",
+      "currentStartedAt": "2026-11-28T08:02:09.638Z"
+    },
+    "timestamp": "2026-11-28T08:02:09.643Z",
+    "createdAt": "2026-11-28T08:02:09.643Z"
+  },
+  {
+    "id": 1795852050355,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:47:27.983Z",
+      "currentStartedAt": "2026-11-28T07:47:29.680Z"
+    },
+    "timestamp": "2026-11-28T07:47:29.688Z",
+    "createdAt": "2026-11-28T07:47:29.688Z"
+  },
+  {
+    "id": 1795852048796,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:34:30.068Z",
+      "currentStartedAt": "2026-11-28T07:47:27.983Z"
+    },
+    "timestamp": "2026-11-28T07:47:27.991Z",
+    "createdAt": "2026-11-28T07:47:27.991Z"
+  },
+  {
+    "id": 1795851270287,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:30:19.865Z",
+      "currentStartedAt": "2026-11-28T07:34:30.068Z"
+    },
+    "timestamp": "2026-11-28T07:34:30.074Z",
+    "createdAt": "2026-11-28T07:34:30.074Z"
+  },
+  {
+    "id": 1795851020336,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:29:59.050Z",
+      "currentStartedAt": "2026-11-28T07:30:19.865Z"
+    },
+    "timestamp": "2026-11-28T07:30:19.873Z",
+    "createdAt": "2026-11-28T07:30:19.873Z"
+  },
+  {
+    "id": 1795850999383,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:29:41.064Z",
+      "currentStartedAt": "2026-11-28T07:29:59.050Z"
+    },
+    "timestamp": "2026-11-28T07:29:59.056Z",
+    "createdAt": "2026-11-28T07:29:59.056Z"
+  },
+  {
+    "id": 1795850981971,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:29:30.598Z",
+      "currentStartedAt": "2026-11-28T07:29:41.064Z"
+    },
+    "timestamp": "2026-11-28T07:29:41.072Z",
+    "createdAt": "2026-11-28T07:29:41.072Z"
+  },
+  {
+    "id": 1795850971395,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:24:13.026Z",
+      "currentStartedAt": "2026-11-28T07:29:30.598Z"
+    },
+    "timestamp": "2026-11-28T07:29:30.612Z",
+    "createdAt": "2026-11-28T07:29:30.612Z"
+  },
+  {
+    "id": 1795850653810,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:19:15.715Z",
+      "currentStartedAt": "2026-11-28T07:24:13.026Z"
+    },
+    "timestamp": "2026-11-28T07:24:13.037Z",
+    "createdAt": "2026-11-28T07:24:13.037Z"
+  },
+  {
+    "id": 1795850356384,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:18:11.539Z",
+      "currentStartedAt": "2026-11-28T07:19:15.715Z"
+    },
+    "timestamp": "2026-11-28T07:19:15.732Z",
+    "createdAt": "2026-11-28T07:19:15.732Z"
+  },
+  {
+    "id": 1795850291804,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:13:31.554Z",
+      "currentStartedAt": "2026-11-28T07:18:11.539Z"
+    },
+    "timestamp": "2026-11-28T07:18:11.546Z",
+    "createdAt": "2026-11-28T07:18:11.546Z"
+  },
+  {
+    "id": 1795850012064,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T07:12:26.938Z",
+      "currentStartedAt": "2026-11-28T07:13:31.554Z"
+    },
+    "timestamp": "2026-11-28T07:13:31.560Z",
+    "createdAt": "2026-11-28T07:13:31.560Z"
+  },
+  {
+    "id": 1795849947241,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T06:45:34.067Z",
+      "currentStartedAt": "2026-11-28T07:12:26.938Z"
+    },
+    "timestamp": "2026-11-28T07:12:26.947Z",
+    "createdAt": "2026-11-28T07:12:26.947Z"
+  },
+  {
+    "id": 1795848334895,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-28T05:51:05.926Z",
+      "currentStartedAt": "2026-11-28T06:45:34.067Z"
+    },
+    "timestamp": "2026-11-28T06:45:34.095Z",
+    "createdAt": "2026-11-28T06:45:34.095Z"
+  },
+  {
     "id": 1795845065972,
     "userId": null,
     "type": "warning",

@@ -18,6 +18,7 @@ import {
   Play,
   Square,
   RefreshCw,
+  Copy,
 } from "lucide-react";
 
   // =====================================================
@@ -51,6 +52,16 @@ import {
       );
     }
   }
+
+async function copyToClipboard(text, label = "Text") {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    console.error(`[Sources] Failed to copy ${label}:`, error);
+    return false;
+  }
+}
 /* =========================================================
    SOURCE TYPES
 ========================================================= */
@@ -389,6 +400,27 @@ function SourceSettingsModal({
   const [error, setError] = useState("");
   const [loadingDevices, setLoadingDevices] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [copiedField, setCopiedField] = useState("");
+
+  const inputStreamKey = source.inputStreamKey || "";
+  const rtmpServerUrl = `rtmp://${window.location.hostname}:1935/live`;
+
+  async function handleCopy(value, label) {
+    if (!value) {
+      setError(`${label} is not available.`);
+      return;
+    }
+
+    const success = await copyToClipboard(value, label);
+
+    if (success) {
+      setCopiedField(label);
+      window.setTimeout(() => setCopiedField(""), 2000);
+    } else {
+      setError(`Failed to copy ${label}.`);
+    }
+  }
+
 
   const videoRef = useRef(null);
   const audioRef = useRef(null);
@@ -461,7 +493,7 @@ function SourceSettingsModal({
             ? devices.find((device) => device.deviceId === deviceId)?.label || "Selected device"
             : source.type === "video"
               ? file?.name || source.settings?.fileName || "No video selected"
-              : rtmpUrl || "RTMP Input",
+              : "RTMP Input",
       });
 
       setSaveMessage("Settings saved successfully.");
@@ -767,32 +799,100 @@ function SourceSettingsModal({
             </>
           )}
 
-          {/* RTMP */}
+          {/* RTMP INPUT */}
           {source.type === "rtmp" && (
-            <>
+            <div className="space-y-4">
               <div>
                 <label className="mb-2 block text-xs font-medium text-slate-400">
-                  RTMP Input URL
+                  RTMP Server URL
                 </label>
-
-                <input
-                  type="text"
-                  value={rtmpUrl}
-                  onChange={(event) => setRtmpUrl(event.target.value)}
-                  placeholder="rtmp://localhost:1935/live/stream"
-                  className="w-full rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-600 focus:border-violet-500/50"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={rtmpServerUrl}
+                    readOnly
+                    className="min-w-0 flex-1 rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 text-sm text-white outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(rtmpServerUrl, "Server URL")}
+                    className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs font-medium text-slate-300 transition hover:bg-white/[0.07]"
+                  >
+                    {copiedField === "Server URL" ? (
+                      <CheckCircle2 size={14} className="text-emerald-400" />
+                    ) : (
+                      <Copy size={14} />
+                    )}
+                    {copiedField === "Server URL" ? "Copied" : "Copy"}
+                  </button>
+                </div>
               </div>
 
-              <div className="rounded-lg border border-rose-500/10 bg-rose-500/5 p-3">
-                <p className="text-xs leading-relaxed text-slate-400">
-                  The RTMP server currently accepts incoming streams
-                  through the backend. This field stores the input
-                  configuration, but automatic stream detection and
-                  media preview have not been connected yet.
+              <div>
+                <label className="mb-2 block text-xs font-medium text-slate-400">
+                  Input Stream Key
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={inputStreamKey}
+                    readOnly
+                    placeholder="Stream key is not available"
+                    className="min-w-0 flex-1 rounded-lg border border-white/10 bg-[#1c1c27] px-3 py-2.5 font-mono text-xs text-white outline-none"
+                  />
+                  <button
+                    type="button"
+                    disabled={!inputStreamKey}
+                    onClick={() => handleCopy(inputStreamKey, "Stream Key")}
+                    className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs font-medium text-slate-300 transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {copiedField === "Stream Key" ? (
+                      <CheckCircle2 size={14} className="text-emerald-400" />
+                    ) : (
+                      <Copy size={14} />
+                    )}
+                    {copiedField === "Stream Key" ? "Copied" : "Copy"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-rose-500/10 bg-rose-500/5 p-4">
+                <div className="flex items-center gap-2">
+                  <Radio size={16} className="text-rose-400" />
+                  <h3 className="text-sm font-medium text-white">
+                    RTMP Connection
+                  </h3>
+                </div>
+                <div className="mt-3 space-y-2 text-xs leading-relaxed text-slate-400">
+                  <p>Configure your streaming software using the Server URL and Stream Key above.</p>
+                  <div className="rounded-md bg-black/20 p-3">
+                    <p className="font-medium text-slate-300">OBS Studio Configuration</p>
+                    <ol className="mt-2 list-decimal space-y-1.5 pl-4">
+                      <li>Open OBS Studio.</li>
+                      <li>Go to Settings → Stream.</li>
+                      <li>Select Custom as the service.</li>
+                      <li>Paste the RTMP Server URL.</li>
+                      <li>Paste the Input Stream Key.</li>
+                      <li>Click Apply and start streaming.</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 p-3">
+                <p className="text-xs leading-relaxed text-amber-400">
+                  Keep your Input Stream Key private. Anyone with this key may be able to publish a stream to this source.
                 </p>
               </div>
-            </>
+
+              {!inputStreamKey && (
+                <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 p-3">
+                  <p className="text-xs text-amber-400">
+                    Stream Key has not been returned by the backend. Refresh the source list or check sourceService.js.
+                  </p>
+                </div>
+              )}
+            </div>
           )}
 
           {loadingDevices && (
@@ -826,24 +926,26 @@ function SourceSettingsModal({
               Save Settings
             </button>
 
-            {source.status === "active" ? (
-              <button
-                type="button"
-                onClick={handleStopPreview}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-red-500"
-              >
-                <Square size={14} />
-                Stop
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handlePreview}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-violet-500"
-              >
-                <Play size={14} />
-                Start Preview
-              </button>
+            {source.type !== "rtmp" && (
+              source.status === "active" ? (
+                <button
+                  type="button"
+                  onClick={handleStopPreview}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-red-500"
+                >
+                  <Square size={14} />
+                  Stop
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePreview}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-violet-500"
+                >
+                  <Play size={14} />
+                  Start Preview
+                </button>
+              )
             )}
 
           </div>

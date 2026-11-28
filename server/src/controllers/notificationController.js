@@ -1,3 +1,4 @@
+
 /* =========================================================
    NOTIFICATION CONTROLLER
    ========================================================= */
@@ -10,7 +11,10 @@ const notificationService = require("../services/notificationService");
 
 const getNotifications = (req, res) => {
   try {
-    const notifications = notificationService.getAllNotifications();
+    const currentUser = req.session.user;
+
+    const notifications =
+      notificationService.getAllNotifications(currentUser);
 
     res.status(200).json({
       success: true,
@@ -34,8 +38,11 @@ const getNotifications = (req, res) => {
 
 const markNotificationAsRead = (req, res) => {
   try {
+    const currentUser = req.session.user;
+
     const notification = notificationService.markAsRead(
-      req.params.id
+      req.params.id,
+      currentUser
     );
 
     if (!notification) {
@@ -65,7 +72,10 @@ const markNotificationAsRead = (req, res) => {
 
 const markAllNotificationsAsRead = (req, res) => {
   try {
-    const notifications = notificationService.markAllAsRead();
+    const currentUser = req.session.user;
+
+    const notifications =
+      notificationService.markAllAsRead(currentUser);
 
     res.status(200).json({
       success: true,
@@ -87,7 +97,9 @@ const markAllNotificationsAsRead = (req, res) => {
 
 const clearNotifications = (req, res) => {
   try {
-    notificationService.clearNotifications();
+    const currentUser = req.session.user;
+
+    notificationService.clearNotifications(currentUser);
 
     res.status(200).json({
       success: true,
