@@ -20,6 +20,14 @@ import {
 
 const API_BASE_URL = "http://localhost:5000/api";
 
+// =====================================
+// WHATSAPP ADMIN CONFIGURATION
+// =====================================
+
+// Replace this with the admin WhatsApp number in international format,
+// without +, spaces, or dashes. Example: 6281234567890
+const ADMIN_WHATSAPP_NUMBER = "62818478463";
+
 async function apiRequest(endpoint, options = {}) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     credentials: "include",
@@ -96,6 +104,7 @@ function ChannelLimitRequest() {
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [whatsappLink, setWhatsappLink] = useState("");
 
   // =====================================
   // REQUEST STATUS
@@ -313,6 +322,29 @@ function ChannelLimitRequest() {
         response.message ||
           "Your request has been submitted successfully."
       );
+
+      // ---------------------------------
+      // GENERATE WHATSAPP LINK
+      // ---------------------------------
+
+      const whatsappMessage = [
+        "MULTISTREAM - CHANNEL LIMIT REQUEST",
+        "",
+        `Current Limit: ${currentLimit} Channels`,
+        `Requested Limit: ${Number(requestedLimit)} Channels`,
+        "",
+        "Reason:",
+        reason.trim(),
+        "",
+        "Status: Pending Approval",
+        "Please review this request in the MultiStream Admin Dashboard.",
+      ].join("\n");
+
+      const whatsappUrl = `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+        whatsappMessage
+      )}`;
+
+      setWhatsappLink(whatsappUrl);
 
       setReason("");
 
@@ -723,6 +755,23 @@ function ChannelLimitRequest() {
                   <p className="mt-1 text-xs text-gray-400">
                     {successMessage}
                   </p>
+
+                  {whatsappLink && (
+                    <a
+                      href={whatsappLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="
+                        mt-3 inline-flex items-center justify-center
+                        gap-2 rounded-lg bg-emerald-600
+                        px-4 py-2 text-sm font-medium text-white
+                        transition hover:bg-emerald-500
+                      "
+                    >
+                      <Send className="h-4 w-4" />
+                      Send to WhatsApp Admin
+                    </a>
+                  )}
                 </div>
               </div>
             )}

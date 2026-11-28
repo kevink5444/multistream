@@ -13,5 +13,20 @@
     "reviewedAt": null,
     "createdAt": "2026-11-27T04:45:11.869Z",
     "updatedAt": "2026-11-27T04:45:11.869Z"
+  },
+  {
+    "id": "clr_1795847780967_4t4jf9",
+    "userId": "user_1795762052426",
+    "userName": "Test1",
+    "userEmail": "test1@example.com",
+    "currentLimit": 2,
+    "requestedLimit": 5,
+    "reason": "Permintaan kurang channel limit",
+    "status": "pending",
+    "adminNote": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "createdAt": "2026-11-28T06:36:20.967Z",
+    "updatedAt": "2026-11-28T06:36:20.967Z"
   }
 ]

@@ -1,5 +1,20 @@
 [
   {
+    "id": 1795845065972,
+    "userId": null,
+    "type": "warning",
+    "category": "system",
+    "title": "Backend restarted",
+    "description": "MultiStream backend has restarted.",
+    "destination": "System",
+    "metadata": {
+      "previousStartedAt": "2026-11-27T14:00:38.734Z",
+      "currentStartedAt": "2026-11-28T05:51:05.926Z"
+    },
+    "timestamp": "2026-11-28T05:51:05.934Z",
+    "createdAt": "2026-11-28T05:51:05.934Z"
+  },
+  {
     "id": 1795788170410,
     "userId": null,
     "type": "info",
